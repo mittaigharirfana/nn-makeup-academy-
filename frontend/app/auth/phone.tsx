@@ -17,18 +17,30 @@ export default function PhoneScreen() {
 
     setLoading(true);
     try {
+      console.log('Sending OTP for phone:', phone);
       const response = await api.post('/auth/send-otp', { phone });
+      console.log('OTP Response:', response.data);
       
       if (response.data.success) {
-        Alert.alert('Success', `OTP sent successfully! Your OTP is: ${response.data.otp}`, [
-          {
-            text: 'OK',
-            onPress: () => router.push({ pathname: '/auth/verify', params: { phone } })
-          }
-        ]);
+        // Auto-navigate with OTP stored
+        const otp = response.data.otp;
+        console.log('OTP received:', otp);
+        
+        Alert.alert(
+          'OTP Sent Successfully!', 
+          `Your OTP is: ${otp}\n\nPlease enter this code in the next screen.`,
+          [
+            {
+              text: 'Continue',
+              onPress: () => router.push({ pathname: '/auth/verify', params: { phone, otp } })
+            }
+          ]
+        );
       }
     } catch (error: any) {
-      Alert.alert('Error', error.response?.data?.detail || 'Failed to send OTP');
+      console.error('Send OTP Error:', error);
+      const errorMessage = error.response?.data?.detail || error.message || 'Failed to send OTP. Please check your connection.';
+      Alert.alert('Error', errorMessage);
     } finally {
       setLoading(false);
     }
