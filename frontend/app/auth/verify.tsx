@@ -9,7 +9,7 @@ export default function VerifyScreen() {
   const [otp, setOtp] = useState(['', '', '', '', '', '']);
   const [loading, setLoading] = useState(false);
   const router = useRouter();
-  const { phone } = useLocalSearchParams<{ phone: string }>();
+  const { phone, otp: passedOtp } = useLocalSearchParams<{ phone: string; otp?: string }>();
   const { login } = useAuth();
   const inputRefs = useRef<Array<TextInput | null>>([]);
 
