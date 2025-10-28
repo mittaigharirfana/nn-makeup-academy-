@@ -132,19 +132,40 @@ def generate_otp():
 
 @api_router.post("/auth/send-otp")
 async def send_otp(request: PhoneRequest):
-    """Send OTP to phone number"""
+    """Send OTP to phone number via Twilio SMS"""
     otp = generate_otp()
     OTP_STORAGE[request.phone] = otp
     
-    # In production, send via SMS
-    # For now, return OTP in response (development only)
-    logging.info(f"OTP for {request.phone}: {otp}")
+    # Format phone number for Twilio (add +91 prefix for Indian numbers)
+    phone_number = request.phone
+    if not phone_number.startswith('+'):
+        phone_number = f"+91{phone_number}"
     
-    return {
-        "success": True,
-        "message": "OTP sent successfully",
-        "otp": otp  # Remove in production
-    }
+    try:
+        # Send SMS via Twilio
+        message = twilio_client.messages.create(
+            body=f"Your N&N Makeup Academy OTP is: {otp}. Valid for 10 minutes.",
+            from_=TWILIO_PHONE_NUMBER,
+            to=phone_number
+        )
+        
+        logging.info(f"SMS sent to {phone_number}. Message SID: {message.sid}")
+        logging.info(f"OTP for {request.phone}: {otp}")
+        
+        return {
+            "success": True,
+            "message": "OTP sent successfully to your phone",
+            "otp": otp  # Keep this for development/testing
+        }
+    except Exception as e:
+        logging.error(f"Failed to send SMS to {phone_number}: {str(e)}")
+        # Still return success but with warning
+        return {
+            "success": True,
+            "message": "OTP generated (SMS service unavailable)",
+            "otp": otp,
+            "warning": "Please use the OTP shown on screen"
+        }
 
 @api_router.post("/auth/verify-otp")
 async def verify_otp(request: OTPVerifyRequest):
