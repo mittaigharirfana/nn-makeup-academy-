@@ -166,6 +166,27 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: '#333',
   },
+  otpHintBox: {
+    backgroundColor: '#FFF5F7',
+    borderRadius: 12,
+    padding: 16,
+    marginTop: 16,
+    borderWidth: 2,
+    borderColor: '#FF1493',
+    borderStyle: 'dashed',
+  },
+  otpHintLabel: {
+    fontSize: 14,
+    color: '#666',
+    marginBottom: 4,
+  },
+  otpHintValue: {
+    fontSize: 32,
+    fontWeight: 'bold',
+    color: '#FF1493',
+    textAlign: 'center',
+    letterSpacing: 4,
+  },
   otpContainer: {
     flexDirection: 'row',
     justifyContent: 'space-between',
