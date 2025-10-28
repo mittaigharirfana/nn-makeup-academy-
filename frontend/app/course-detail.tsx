@@ -77,22 +77,30 @@ export default function CourseDetailScreen() {
 
     setEnrolling(true);
     try {
-      // Get origin URL
-      const originUrl = Linking.createURL('');
+      console.log('Creating checkout session for course:', id);
+      
+      // Get current window location as origin URL
+      const originUrl = typeof window !== 'undefined' ? window.location.origin : 'http://localhost:3000';
+      console.log('Origin URL:', originUrl);
       
       // Create checkout session
       const response = await api.post('/payment/create-checkout', {
         course_id: id,
-        origin_url: originUrl.split('://')[1] ? originUrl : 'http://localhost:3000'
+        origin_url: originUrl
       });
 
-      // Open Stripe checkout in browser
+      console.log('Checkout response:', response.data);
+
+      // Open Stripe checkout in same window
       if (response.data.url) {
-        await Linking.openURL(response.data.url);
+        console.log('Redirecting to Stripe:', response.data.url);
+        window.location.href = response.data.url;
+      } else {
+        Alert.alert('Error', 'Payment URL not received');
       }
     } catch (error: any) {
+      console.error('Enrollment error:', error);
       Alert.alert('Error', error.response?.data?.detail || 'Failed to initiate payment');
-    } finally {
       setEnrolling(false);
     }
   };
