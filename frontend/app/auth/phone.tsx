@@ -108,6 +108,14 @@ export default function PhoneScreen() {
           </View>
         </ScrollView>
       </KeyboardAvoidingView>
+
+      <CustomAlert
+        visible={showAlert}
+        title={alertData.title}
+        message={alertData.message}
+        onClose={handleAlertClose}
+        confirmText="Continue"
+      />
     </SafeAreaView>
   );
 }
