@@ -79,6 +79,12 @@ export default function VerifyScreen() {
                 Enter the 6-digit code sent to
               </Text>
               <Text style={styles.phone}>+91 {phone}</Text>
+              {passedOtp && (
+                <View style={styles.otpHintBox}>
+                  <Text style={styles.otpHintLabel}>Your OTP:</Text>
+                  <Text style={styles.otpHintValue}>{passedOtp}</Text>
+                </View>
+              )}
             </View>
 
             <View style={styles.otpContainer}>
