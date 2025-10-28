@@ -1,17 +1,25 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert, KeyboardAvoidingView, Platform, ScrollView } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, KeyboardAvoidingView, Platform, ScrollView } from 'react-native';
 import { useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { CustomAlert } from '../../components/CustomAlert';
 import api from '../../utils/api';
 
 export default function PhoneScreen() {
   const [phone, setPhone] = useState('');
   const [loading, setLoading] = useState(false);
+  const [showAlert, setShowAlert] = useState(false);
+  const [alertData, setAlertData] = useState({ title: '', message: '', otp: '' });
   const router = useRouter();
 
   const handleSendOTP = async () => {
     if (!phone || phone.length < 10) {
-      Alert.alert('Error', 'Please enter a valid phone number');
+      setAlertData({
+        title: 'Error',
+        message: 'Please enter a valid 10-digit phone number',
+        otp: ''
+      });
+      setShowAlert(true);
       return;
     }
 
@@ -22,27 +30,35 @@ export default function PhoneScreen() {
       console.log('OTP Response:', response.data);
       
       if (response.data.success) {
-        // Auto-navigate with OTP stored
         const otp = response.data.otp;
         console.log('OTP received:', otp);
         
-        Alert.alert(
-          'OTP Sent Successfully!', 
-          `Your OTP is: ${otp}\n\nPlease enter this code in the next screen.`,
-          [
-            {
-              text: 'Continue',
-              onPress: () => router.push({ pathname: '/auth/verify', params: { phone, otp } })
-            }
-          ]
-        );
+        setAlertData({
+          title: 'OTP Sent Successfully!',
+          message: `Your OTP is: ${otp}\n\nPlease enter this code in the next screen.`,
+          otp: otp
+        });
+        setShowAlert(true);
       }
     } catch (error: any) {
       console.error('Send OTP Error:', error);
       const errorMessage = error.response?.data?.detail || error.message || 'Failed to send OTP. Please check your connection.';
-      Alert.alert('Error', errorMessage);
+      setAlertData({
+        title: 'Error',
+        message: errorMessage,
+        otp: ''
+      });
+      setShowAlert(true);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleAlertClose = () => {
+    setShowAlert(false);
+    if (alertData.otp) {
+      // Navigate to verify screen
+      router.push({ pathname: '/auth/verify', params: { phone, otp: alertData.otp } });
     }
   };
 
