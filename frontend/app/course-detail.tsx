@@ -39,19 +39,25 @@ export default function CourseDetailScreen() {
 
   useEffect(() => {
     if (id) {
+      console.log('Course ID:', id);
       fetchCourseDetails();
       checkEnrollment();
+    } else {
+      console.log('No course ID provided');
+      setLoading(false);
     }
   }, [id]);
 
   const fetchCourseDetails = async () => {
+    console.log('Fetching course details for ID:', id);
     try {
       const response = await api.get(`/courses/${id}`);
+      console.log('Course data received:', response.data);
       setCourse(response.data);
+      setLoading(false);
     } catch (error) {
       console.error('Error fetching course details:', error);
       Alert.alert('Error', 'Failed to load course details');
-    } finally {
       setLoading(false);
     }
   };
