@@ -14,6 +14,7 @@ export default function RootLayout() {
         <Stack.Screen name="course-detail" />
         <Stack.Screen name="video-player" />
         <Stack.Screen name="payment-success" />
+        <Stack.Screen name="certificate" />
         <Stack.Screen name="admin/login" />
         <Stack.Screen name="admin/dashboard" />
       </Stack>
