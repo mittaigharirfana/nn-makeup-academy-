@@ -823,15 +823,41 @@ courses = [
 print("Starting to add small courses to database...")
 print("=" * 60)
 
+# Admin authorization header
+headers = {
+    "Authorization": "admin_token"
+}
+
 for idx, course in enumerate(courses, 1):
     try:
         print(f"\n[{idx}/9] Adding: {course['title']}")
         
-        response = requests.post(f"{BASE_URL}/courses", json=course)
+        # Prepare course data for API
+        course_data = {
+            "title": course["title"],
+            "description": course["description"],
+            "price_inr": course["price"],
+            "thumbnail": course["image"],
+            "category": course["category"],
+            "instructor": course["instructor"],
+            "duration": course["duration"],
+            "lessons": [
+                {
+                    "type": "theory",
+                    "modules": course["theory_syllabus"]
+                },
+                {
+                    "type": "practical",
+                    "videos": course["practical_syllabus"]
+                }
+            ]
+        }
+        
+        response = requests.post(f"{BASE_URL}/admin/courses", json=course_data, headers=headers)
         
         if response.status_code == 200:
             result = response.json()
-            print(f"✓ Successfully added - Course ID: {result.get('id', 'N/A')}")
+            print(f"✓ Successfully added - Course ID: {result.get('course', {}).get('id', 'N/A')}")
         else:
             print(f"✗ Failed to add course")
             print(f"  Status Code: {response.status_code}")
