@@ -28,6 +28,9 @@ interface CourseDetail {
   students_count: number;
   lessons: Lesson[];
   progress?: number;
+  course_type?: string;
+  external_url?: string;
+  certificate_enabled?: boolean;
 }
 
 export default function CourseDetailScreen() {
