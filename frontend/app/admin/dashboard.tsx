@@ -91,12 +91,21 @@ export default function AdminDashboard() {
     setCategory(course.category);
     setInstructor(course.instructor);
     setDuration(course.duration);
+    setCourseType(course.course_type || 'internal');
+    setExternalUrl(course.external_url || '');
+    setCertificateEnabled(course.certificate_enabled !== false);
     setShowAddModal(true);
   };
 
   const handleSaveCourse = async () => {
     if (!title || !description || !priceInr) {
       Alert.alert('Error', 'Please fill all required fields');
+      return;
+    }
+
+    // Validate external URL if course type is external
+    if (courseType === 'external' && !externalUrl) {
+      Alert.alert('Error', 'Please provide external URL for external courses');
       return;
     }
 
@@ -110,7 +119,10 @@ export default function AdminDashboard() {
         category,
         instructor: instructor || 'Irfana Begum',
         duration: duration || '4 weeks',
-        lessons: []
+        lessons: [],
+        course_type: courseType,
+        external_url: externalUrl || null,
+        certificate_enabled: certificateEnabled
       };
 
       if (editingCourse) {
