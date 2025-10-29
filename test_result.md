@@ -179,8 +179,7 @@ metadata:
   run_ui: false
 
 test_plan:
-  current_focus:
-    - "Courses API endpoints"
+  current_focus: []
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
@@ -190,3 +189,5 @@ agent_communication:
       message: "Comprehensive backend testing completed successfully. All 4 critical API flows tested and working: 1) Authentication (OTP send/verify) - ✅ Working, 2) Courses API (GET courses, GET course by ID) - ✅ Working, 3) Live Classes API - ✅ Working, 4) My Courses with auth - ✅ Working. Backend URL https://makeupacademy.preview.emergentagent.com/api is responding correctly. Data seeding successful. All endpoints return 200 OK with proper JSON structures. Authentication middleware correctly protects /my-courses endpoint."
     - agent: "main"
       message: "Added 9 new small courses from Excel file with complete theory and practical syllabus. Please test: 1) Verify GET /api/courses returns all courses including the 9 new ones, 2) Test GET /api/courses/{course_id} for one of the new small courses (e.g., Basic Eyebrow Shaping), 3) Verify course structure includes proper theory modules and practical videos, 4) Check that price_inr is present for all new courses."
+    - agent: "testing"
+      message: "✅ 9 NEW SMALL COURSES TESTING COMPLETED: All requested tests passed successfully. GET /api/courses returns 17 total courses (up from original 3). All 9 new courses verified with correct categories and pricing. Specific course ID 6901f80fd184cdb3d0d5e94e (Basic Eyebrow Shaping) tested - returns complete course structure with price_inr field, 6 theory modules, and 6 practical videos. Course categories properly distributed: Makeup (7 courses), Nail (5 courses), Hair (5 courses). All endpoints responding correctly. Backend API fully functional for the new small courses feature."
