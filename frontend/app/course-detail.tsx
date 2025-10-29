@@ -20,6 +20,7 @@ interface CourseDetail {
   title: string;
   description: string;
   price: number;
+  price_inr?: number;
   thumbnail: string;
   category: string;
   instructor: string;
