@@ -255,7 +255,27 @@ export default function CourseDetailScreen() {
         </View>
       </ScrollView>
 
-      {!isEnrolled && (
+      {!isEnrolled && course.course_type === 'external' && (
+        <View style={styles.footer}>
+          <View style={styles.priceContainer}>
+            <Text style={styles.priceLabel}>Course Price</Text>
+            <Text style={styles.price}>₹{course.price_inr || (course.price * 83).toFixed(0)}</Text>
+          </View>
+          <TouchableOpacity 
+            style={styles.externalButton}
+            onPress={() => {
+              if (course.external_url) {
+                Linking.openURL(course.external_url);
+              }
+            }}
+          >
+            <Ionicons name="open-outline" size={20} color="#FFF" style={{marginRight: 8}} />
+            <Text style={styles.enrollButtonText}>Learn on TagMango</Text>
+          </TouchableOpacity>
+        </View>
+      )}
+      
+      {!isEnrolled && course.course_type !== 'external' && (
         <View style={styles.footer}>
           <View style={styles.priceContainer}>
             <Text style={styles.priceLabel}>Course Price</Text>
