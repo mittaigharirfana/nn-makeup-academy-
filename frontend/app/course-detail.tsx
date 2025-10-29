@@ -41,6 +41,7 @@ export default function CourseDetailScreen() {
   const [isEnrolled, setIsEnrolled] = useState(false);
   const router = useRouter();
   const { id } = useLocalSearchParams<{ id: string }>();
+  const { user } = useAuth();
 
   useEffect(() => {
     if (id) {
