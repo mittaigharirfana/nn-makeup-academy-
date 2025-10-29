@@ -639,7 +639,10 @@ async def create_course(
         "instructor": request.instructor,
         "duration": request.duration,
         "students_count": 0,
-        "lessons": request.lessons
+        "lessons": request.lessons,
+        "course_type": request.course_type,
+        "external_url": request.external_url,
+        "certificate_enabled": request.certificate_enabled
     }
     
     result = await db.courses.insert_one(new_course)
