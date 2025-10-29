@@ -141,6 +141,9 @@ class CourseCreate(BaseModel):
     instructor: str
     duration: str
     lessons: List[Dict[str, Any]] = []
+    course_type: str = "internal"  # "internal" or "external"
+    external_url: Optional[str] = None
+    certificate_enabled: bool = True
 
 class CourseUpdate(BaseModel):
     title: Optional[str] = None
@@ -149,6 +152,11 @@ class CourseUpdate(BaseModel):
     thumbnail: Optional[str] = None
     category: Optional[str] = None
     instructor: Optional[str] = None
+    duration: Optional[str] = None
+    lessons: Optional[List[Dict[str, Any]]] = None
+    course_type: Optional[str] = None
+    external_url: Optional[str] = None
+    certificate_enabled: Optional[bool] = None
     duration: Optional[str] = None
     lessons: Optional[List[Dict[str, Any]]] = None
 
