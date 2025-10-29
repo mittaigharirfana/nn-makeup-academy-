@@ -411,10 +411,11 @@ class BackendTester:
             return False
     
     def run_all_tests(self):
-        """Run all backend tests"""
-        print(f"🚀 Starting Backend API Tests for N&N Makeup Academy")
+        """Run all backend tests for External Courses & Certificates"""
+        print(f"🚀 N&N MAKEUP ACADEMY BACKEND TESTING - EXTERNAL COURSES & CERTIFICATES")
         print(f"Backend URL: {BACKEND_URL}")
-        print("=" * 60)
+        print(f"Test started at: {datetime.now()}")
+        print("=" * 80)
         
         # First, seed data if needed
         try:
@@ -429,10 +430,12 @@ class BackendTester:
         
         # Run tests in sequence
         tests = [
-            ("Authentication Flow", self.test_auth_flow),
-            ("Courses API", self.test_courses_api),
-            ("Live Classes API", self.test_live_classes),
-            ("My Courses API", self.test_my_courses)
+            ("Admin Authentication", self.test_admin_auth),
+            ("User Authentication", self.test_user_auth),
+            ("External Course Creation", self.test_create_external_course),
+            ("External Course Retrieval", self.test_external_course_retrieval),
+            ("Certificate APIs", self.test_certificate_apis),
+            ("Existing Features Regression", self.test_regression_features)
         ]
         
         passed = 0
@@ -443,12 +446,21 @@ class BackendTester:
                 passed += 1
         
         # Print summary
-        print("\n" + "=" * 60)
-        print(f"🏁 Test Summary: {passed}/{total} tests passed")
+        print("\n" + "=" * 80)
+        print(f"🏁 TEST SUMMARY: {passed}/{total} tests passed")
+        print("=" * 80)
         
         for category, result in self.results.items():
             status_icon = "✅" if result["status"] == "passed" else "❌" if result["status"] == "failed" else "⏳"
-            print(f"{status_icon} {category.replace('_', ' ').title()}: {result['status']}")
+            category_name = category.replace('_', ' ').title()
+            print(f"{status_icon} {category_name}: {result['status']}")
+        
+        if passed == total:
+            print("\n🎉 ALL TESTS PASSED!")
+            print("External Courses & Certificates features are working correctly!")
+        else:
+            print(f"\n⚠️  {total - passed} TEST(S) FAILED")
+            print("Some features need attention.")
         
         return passed == total
 
