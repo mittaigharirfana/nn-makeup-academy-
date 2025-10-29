@@ -387,9 +387,72 @@ async def update_progress(
             }
         )
         
+        # Check if course is completed and generate certificate
+        if progress >= 100 and course.get('certificate_enabled', True):
+            await generate_certificate(user_id, course_id, course)
+        
         return {"success": True, "progress": progress}
     
     return {"success": False}
+
+# ============= Certificate APIs =============
+
+async def generate_certificate(user_id: str, course_id: str, course: dict):
+    """Generate certificate for course completion"""
+    # Check if certificate already exists
+    existing_cert = await db.certificates.find_one({
+        "user_id": user_id,
+        "course_id": course_id
+    })
+    
+    if existing_cert:
+        return  # Certificate already generated
+    
+    # Get user details
+    user = await db.users.find_one({"_id": ObjectId(user_id)})
+    if not user:
+        return
+    
+    # Generate unique certificate ID
+    import secrets
+    certificate_id = f"NNAC-{secrets.token_hex(4).upper()}"
+    
+    # Create certificate
+    certificate = {
+        "user_id": user_id,
+        "course_id": course_id,
+        "certificate_id": certificate_id,
+        "student_name": user.get('name', 'Student'),
+        "course_title": course.get('title', ''),
+        "completion_date": datetime.utcnow(),
+        "issued_date": datetime.utcnow()
+    }
+    
+    await db.certificates.insert_one(certificate)
+
+@api_router.get("/my-certificates")
+async def get_my_certificates(authorization: Optional[str] = Header(None)):
+    """Get user's certificates"""
+    if not authorization:
+        raise HTTPException(status_code=401, detail="Not authenticated")
+    
+    user_id = authorization.replace("Bearer ", "")
+    
+    certificates = []
+    async for cert in db.certificates.find({"user_id": user_id}):
+        certificates.append(serialize_doc(cert))
+    
+    return certificates
+
+@api_router.get("/certificate/{certificate_id}")
+async def get_certificate(certificate_id: str):
+    """Get certificate by ID"""
+    certificate = await db.certificates.find_one({"certificate_id": certificate_id})
+    
+    if not certificate:
+        raise HTTPException(status_code=404, detail="Certificate not found")
+    
+    return serialize_doc(certificate)
 
 # ============= Payment APIs =============
 
