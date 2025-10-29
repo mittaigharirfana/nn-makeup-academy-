@@ -162,6 +162,44 @@ export default function ProfileScreen() {
             </View>
           </View>
 
+          {/* Certificates Section */}
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>My Certificates</Text>
+            {certificates.length === 0 ? (
+              <View style={styles.emptyCertificates}>
+                <Ionicons name="ribbon-outline" size={48} color="#CCC" />
+                <Text style={styles.emptyText}>No certificates yet</Text>
+                <Text style={styles.emptySubtext}>
+                  Complete a course to earn your first certificate!
+                </Text>
+              </View>
+            ) : (
+              <View style={styles.certificatesCard}>
+                {certificates.map((cert, index) => (
+                  <React.Fragment key={cert.id}>
+                    {index > 0 && <View style={styles.divider} />}
+                    <TouchableOpacity 
+                      style={styles.certificateItem}
+                      onPress={() => router.push(`/certificate?id=${cert.certificate_id}`)}
+                    >
+                      <View style={styles.certificateIcon}>
+                        <Ionicons name="ribbon" size={24} color="#FFD700" />
+                      </View>
+                      <View style={styles.certificateInfo}>
+                        <Text style={styles.certificateTitle}>{cert.course_title}</Text>
+                        <Text style={styles.certificateId}>ID: {cert.certificate_id}</Text>
+                        <Text style={styles.certificateDate}>
+                          Completed: {new Date(cert.completion_date).toLocaleDateString()}
+                        </Text>
+                      </View>
+                      <Ionicons name="chevron-forward" size={20} color="#CCC" />
+                    </TouchableOpacity>
+                  </React.Fragment>
+                ))}
+              </View>
+            )}
+          </View>
+
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>Support</Text>
             <View style={styles.menuCard}>
