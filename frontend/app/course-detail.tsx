@@ -256,7 +256,7 @@ export default function CourseDetailScreen() {
         <View style={styles.footer}>
           <View style={styles.priceContainer}>
             <Text style={styles.priceLabel}>Course Price</Text>
-            <Text style={styles.price}>${course.price.toFixed(2)}</Text>
+            <Text style={styles.price}>₹{course.price_inr || (course.price * 83).toFixed(0)}</Text>
           </View>
           <TouchableOpacity 
             style={[styles.enrollButton, enrolling && styles.enrollButtonDisabled]}
