@@ -81,26 +81,81 @@ export default function CourseDetailScreen() {
 
     setEnrolling(true);
     try {
-      console.log('Creating checkout session for course:', id);
+      console.log('Creating Razorpay order for course:', id);
       
-      // Get current window location as origin URL
-      const originUrl = typeof window !== 'undefined' ? window.location.origin : 'http://localhost:3000';
-      console.log('Origin URL:', originUrl);
-      
-      // Create checkout session
-      const response = await api.post('/payment/create-checkout', {
-        course_id: id,
-        origin_url: originUrl
+      // Create Razorpay order
+      const response = await api.post('/payment/create-razorpay-order', {
+        course_id: id
       });
 
-      console.log('Checkout response:', response.data);
+      console.log('Razorpay order response:', response.data);
 
-      // Open Stripe checkout in same window
-      if (response.data.url) {
-        console.log('Redirecting to Stripe:', response.data.url);
-        window.location.href = response.data.url;
+      // Load Razorpay script if not already loaded
+      if (typeof window !== 'undefined' && !(window as any).Razorpay) {
+        const script = document.createElement('script');
+        script.src = 'https://checkout.razorpay.com/v1/checkout.js';
+        script.async = true;
+        document.body.appendChild(script);
+        
+        await new Promise((resolve) => {
+          script.onload = resolve;
+        });
+      }
+
+      // Initialize Razorpay
+      if (typeof window !== 'undefined' && (window as any).Razorpay) {
+        const options = {
+          key: response.data.key_id,
+          amount: response.data.amount,
+          currency: response.data.currency,
+          name: 'N&N Makeup Academy',
+          description: course.title,
+          order_id: response.data.order_id,
+          handler: async function (paymentResponse: any) {
+            try {
+              // Verify payment
+              const verifyResponse = await api.post('/payment/verify-razorpay', null, {
+                params: {
+                  order_id: paymentResponse.razorpay_order_id,
+                  payment_id: paymentResponse.razorpay_payment_id,
+                  signature: paymentResponse.razorpay_signature
+                }
+              });
+              
+              if (verifyResponse.data.success) {
+                Alert.alert('Success', 'Payment successful! You are now enrolled.');
+                router.push('/payment-success');
+              }
+            } catch (error: any) {
+              Alert.alert('Error', 'Payment verification failed');
+              setEnrolling(false);
+            }
+          },
+          prefill: {
+            name: user?.name || '',
+            email: user?.email || '',
+            contact: user?.phone || ''
+          },
+          theme: {
+            color: '#FF1493'
+          },
+          modal: {
+            ondismiss: function() {
+              setEnrolling(false);
+            }
+          }
+        };
+
+        const rzp = new (window as any).Razorpay(options);
+        rzp.on('payment.failed', function (response: any) {
+          Alert.alert('Payment Failed', response.error.description);
+          setEnrolling(false);
+        });
+        
+        rzp.open();
       } else {
-        Alert.alert('Error', 'Payment URL not received');
+        Alert.alert('Error', 'Payment system not loaded. Please refresh the page.');
+        setEnrolling(false);
       }
     } catch (error: any) {
       console.error('Enrollment error:', error);
