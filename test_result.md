@@ -179,9 +179,14 @@ metadata:
   run_ui: false
 
 test_plan:
-  current_focus: []
+  current_focus:
+    - "External Course Support Testing"
+    - "Certificate System Testing"
+    - "Admin Panel External Course Creation"
+    - "Course Detail Page for External Courses"
+    - "Profile Certificate Display"
   stuck_tasks: []
-  test_all: false
+  test_all: true
   test_priority: "high_first"
 
 agent_communication:
@@ -191,3 +196,5 @@ agent_communication:
       message: "Added 9 new small courses from Excel file with complete theory and practical syllabus. Please test: 1) Verify GET /api/courses returns all courses including the 9 new ones, 2) Test GET /api/courses/{course_id} for one of the new small courses (e.g., Basic Eyebrow Shaping), 3) Verify course structure includes proper theory modules and practical videos, 4) Check that price_inr is present for all new courses."
     - agent: "testing"
       message: "✅ 9 NEW SMALL COURSES TESTING COMPLETED: All requested tests passed successfully. GET /api/courses returns 17 total courses (up from original 3). All 9 new courses verified with correct categories and pricing. Specific course ID 6901f80fd184cdb3d0d5e94e (Basic Eyebrow Shaping) tested - returns complete course structure with price_inr field, 6 theory modules, and 6 practical videos. Course categories properly distributed: Makeup (7 courses), Nail (5 courses), Hair (5 courses). All endpoints responding correctly. Backend API fully functional for the new small courses feature."
+    - agent: "main"
+      message: "COMPREHENSIVE FEATURE IMPLEMENTATION COMPLETED: 1) External Course Support - Added course_type field (internal/external), external_url field for TagMango integration, certificate_enabled flag. Updated admin panel with course type selector, external URL input, and certificate toggle. Course detail page now shows 'Learn on TagMango' button for external courses. 2) Certificate System - Backend auto-generates certificates at 100% completion with unique IDs (NNAC-XXXX format). Created beautiful certificate screen with N&N branding. Added certificates section to profile with empty state and certificate list. 3) Price Display - All courses now show ₹ (INR) instead of $ (USD). Please test: 1) Admin panel - add external course with TagMango URL, 2) Course detail - verify external course shows green TagMango button, 3) Certificate - complete a course and verify certificate generation, 4) Profile - verify certificates display correctly."
