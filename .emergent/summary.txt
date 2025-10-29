@@ -1,0 +1,109 @@
+<analysis>
+The AI engineer successfully initiated and developed a full-stack Expo mobile application for a makeup academy. The process was iterative, addressing user feedback and debugging issues as they arose. Key milestones include setting up the project, implementing phone number OTP authentication, building a course browsing and detail view, and developing a comprehensive admin panel for course management. Significant effort was dedicated to resolving frontend rendering issues, particularly with  and route matching in Expo Router. The payment gateway transitioned from Stripe (test mode) to Razorpay (test mode) due to user preference for an Indian service, though full Razorpay integration is pending. Twilio for SMS OTP was also integrated, but user phone number verification on Twilio's end is needed for live SMS. The final interactions focused on populating the app with course content from the user's website, including detailed syllabus and video lessons, and then processing a new set of small courses.
+</analysis>
+
+<product_requirements>
+The user requested an online makeup academy mobile app for women to learn easily from home, mirroring their website (https://nnmakeupandgrooming.com/).
+**Core Features:**
+1.  **Course Browsing & Joining:** Users can browse courses, check details, and join instantly.
+2.  **Online Videos:** App should open course videos.
+3.  **User Authentication:** Simple phone number and OTP login.
+4.  **Payment Integration:** Real payment with Stripe, later switched to Razorpay due to country-specific needs (for Indian payments).
+5.  **Live Class Scheduling/Booking:** Mentioned as a desired feature.
+6.  **Admin Panel:** User explicitly requested admin rights to add, edit, and manage courses and prices, including adding videos and syllabus (both practical and theory).
+7.  **Course Content:** The user desired detailed course syllabus (theory and practical) and associated video lessons.
+8.  **Small Courses:** Ability to add smaller courses starting from ₹1000.
+</product_requirements>
+
+<key_technical_concepts>
+- **Expo Router:** File-based navigation for React Native.
+- **FastAPI:** Python backend framework.
+- **MongoDB:** NoSQL database.
+- **React Native:** Cross-platform mobile UI framework.
+- **Zustand:** State management for frontend.
+- **Twilio:** SMS gateway for OTP delivery.
+- **Razorpay:** Indian payment gateway.
+- **Axios:** HTTP client for API calls.
+</key_technical_concepts>
+
+<code_architecture>
+The application follows a full-stack architecture with an Expo (React Native) frontend, a FastAPI backend, and a MongoDB database.
+
+
+
+-   **/app/backend/server.py**: Main FastAPI application.
+    -   **Summary**: Contains all backend API endpoints for authentication (OTP send/verify), course management (CRUD for courses, fetching enrolled courses), live classes, payment (Stripe and Razorpay integration), and data seeding.
+    -   **Changes**: Initially empty, populated with authentication, course, and live class routes. Updated to include Stripe payment (create checkout session), Twilio SMS sending, and later partially updated for Razorpay keys. Admin routes for course CRUD were added. Policy endpoints were included.
+-   **/app/backend/policies.py**: Contains HTML content for various policy pages.
+    -   **Summary**: Created to hold static policy content (Cancellation & Refund, Terms and Conditions, Shipping, Privacy, Contact Us) which are exposed via FastAPI routes.
+    -   **Changes**: New file creation with predefined HTML strings for policy documents.
+-   **/app/frontend/app/index.tsx**: Main entry point of the Expo app.
+    -   **Summary**: Handles initial routing based on user authentication status. Redirects to  if not logged in, or to  if authenticated.
+    -   **Changes**: Initial setup. Modified to fix  import issues by adjusting the path.
+-   **/app/frontend/app/_layout.tsx**: Root layout for Expo Router, handling global wrappers like .
+    -   **Summary**: Defines the main navigation stack and wraps the app with . It also defines screen options and handles routes.
+    -   **Changes**: Modified repeatedly to correct  import paths and include new routes like  and .
+-   **/app/frontend/contexts/AuthContext.tsx**: Provides authentication context to the app.
+    -   **Summary**: Manages user token, loading state, sign-in, and sign-out logic. Wraps children components in .
+    -   **Changes**: Created. Later moved from  to  (and then back to  as per troubleshooter) to resolve module resolution issues. Imports were adjusted in , , , , .
+-   **/app/frontend/app/auth/phone.tsx**: Phone number input screen for OTP authentication.
+    -   **Summary**: Allows users to enter their phone number and request an OTP.
+    -   **Changes**: Created. Improved with loading states and error handling. Modified to use  component instead of .
+-   **/app/frontend/app/auth/verify.tsx**: OTP verification screen.
+    -   **Summary**: Users enter the received OTP to log in.
+    -   **Changes**: Created. Enhanced to display the OTP on the screen itself if passed as a route parameter, with added styling for visibility.
+-   **/app/frontend/components/CustomAlert.tsx**: A custom modal-based alert component.
+    -   **Summary**: Created to replace  for better visual consistency across platforms, especially web.
+    -   **Changes**: New file creation for a reusable UI component.
+-   **/app/frontend/app/(tabs)/_layout.tsx**: Layout for the main tab navigation.
+    -   **Summary**: Defines the bottom tab bar navigation for authenticated users, including 'Courses', 'My Learning', 'Live Classes', and 'Profile'.
+    -   **Changes**: Created. Configured tab icons and titles.
+-   **/app/frontend/app/(tabs)/courses.tsx**: Displays a list of available courses.
+    -   **Summary**: Fetches and renders a categorized list of courses, allowing users to navigate to course details.
+    -   **Changes**: Created. Logic for fetching and displaying courses and navigating to .
+-   **/app/frontend/app/(tabs)/my-learning.tsx**: Shows courses the user is enrolled in.
+    -   **Summary**: Placeholder for future implementation of enrolled courses.
+    -   **Changes**: New file creation.
+-   **/app/frontend/app/(tabs)/live-classes.tsx**: Displays upcoming live classes.
+    -   **Summary**: Fetches and renders a list of live classes from the backend.
+    -   **Changes**: New file creation.
+-   **/app/frontend/app/(tabs)/profile.tsx**: User profile screen.
+    -   **Summary**: Displays user information and has a logout option.
+    -   **Changes**: New file creation. Updated to import  from the correct context path.
+-   **/app/frontend/app/course-detail.tsx**: Displays detailed information about a selected course.
+    -   **Summary**: Fetches course details, including lessons and syllabus, and handles enrollment.
+    -   **Changes**: Created. Initially had rendering issues, improved with  and error handling. Updated to display detailed theory and practical syllabus.
+-   **/app/frontend/app/video-player.tsx**: Screen for playing course videos.
+    -   **Summary**: Utilizes  to play video URLs.
+    -   **Changes**: New file creation, package added ().
+-   **/app/frontend/app/payment-success.tsx**: Screen shown after a successful payment.
+    -   **Summary**: A confirmation screen for successful course enrollment.
+    -   **Changes**: New file creation.
+-   **/app/frontend/app/admin/login.tsx**: Admin login screen.
+    -   **Summary**: Allows administrators to log in using specific credentials.
+    -   **Changes**: New file creation.
+-   **/app/frontend/app/admin/dashboard.tsx**: Admin dashboard for course management.
+    -   **Summary**: Displays course statistics and provides UI for adding, editing, and deleting courses.
+    -   **Changes**: New file creation.
+-   **/app/frontend/utils/api.ts**: Axios instance for API calls.
+    -   **Summary**: Configures Axios with base URL and error handling, including attaching authentication tokens.
+    -   **Changes**: Set up with  for backend communication.
+
+**Dependency Changes**:
+- **Backend ()**: , , , , , , ,  (later replaced/supplemented by , ).
+- **Frontend ()**: , , , , , , , , , , , , , .
+</code_architecture>
+
+<pending_tasks>
+- **Razorpay Integration Completion:** The Razorpay keys are in the  file, and the SDK is installed, but the full backend payment creation endpoint and frontend integration (checkout flow) are not yet implemented.
+- **Twilio SMS Verification:** For real SMS delivery, the user needs to verify their phone number within their Twilio trial account.
+- **Live Class Booking:** Live class scheduling/booking was requested but not yet implemented.
+</pending_tasks>
+
+<current_work>
+Immediately before this summary request, the AI engineer was tasked with adding more small courses from an Excel sheet provided by the user. The AI engineer successfully processed previous user requests to add 5 new professional courses and updated the 3 original courses with detailed theory and practical syllabus content and video URLs. The current focus is on extracting course details from the uploaded Excel file  and then adding these new small courses to the application's backend, ensuring they also include comprehensive theory and practical syllabus structures, consistent with the user's explicit request. This involves reading the Excel file, parsing its content, and using the existing course creation API to populate the database with these new offerings.
+</current_work>
+
+<optional_next_step>
+Process the  file to add the new small courses to the application.
+</optional_next_step>
