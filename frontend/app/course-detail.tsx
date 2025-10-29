@@ -212,6 +212,33 @@ export default function CourseDetailScreen() {
                     <Ionicons name="time-outline" size={14} color="#999" />
                     <Text style={styles.lessonDuration}>{lesson.duration} mins</Text>
                   </View>
+                  
+                  {lesson.syllabus && (
+                    <View style={styles.syllabusContainer}>
+                      {lesson.syllabus.theory && lesson.syllabus.theory.length > 0 && (
+                        <View style={styles.syllabusSection}>
+                          <Text style={styles.syllabusTitle}>📚 Theory:</Text>
+                          {lesson.syllabus.theory.slice(0, 2).map((item: string, idx: number) => (
+                            <Text key={idx} style={styles.syllabusItem}>• {item}</Text>
+                          ))}
+                          {lesson.syllabus.theory.length > 2 && (
+                            <Text style={styles.syllabusMore}>+{lesson.syllabus.theory.length - 2} more topics</Text>
+                          )}
+                        </View>
+                      )}
+                      {lesson.syllabus.practical && lesson.syllabus.practical.length > 0 && (
+                        <View style={styles.syllabusSection}>
+                          <Text style={styles.syllabusTitle}>💪 Practical:</Text>
+                          {lesson.syllabus.practical.slice(0, 2).map((item: string, idx: number) => (
+                            <Text key={idx} style={styles.syllabusItem}>• {item}</Text>
+                          ))}
+                          {lesson.syllabus.practical.length > 2 && (
+                            <Text style={styles.syllabusMore}>+{lesson.syllabus.practical.length - 2} more activities</Text>
+                          )}
+                        </View>
+                      )}
+                    </View>
+                  )}
                 </View>
                 {isEnrolled ? (
                   <Ionicons name="play-circle" size={32} color="#FF1493" />
