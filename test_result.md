@@ -159,6 +159,66 @@ backend:
           agent: "testing"
           comment: "✅ My Courses API tested successfully. GET /api/my-courses with Bearer token returned 0 enrolled courses (correct for new user). Correctly rejected unauthenticated request with 401 status. Authentication middleware working properly."
 
+  - task: "External Course Support Testing"
+    implemented: true
+    working: true
+    file: "backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+        - working: true
+          agent: "testing"
+          comment: "✅ EXTERNAL COURSE SUPPORT FULLY TESTED: Successfully created external course 'Professional Certification Program' (₹42,000) via POST /api/admin/courses with course_type='external', external_url='https://learn.nnmua.com/l/d8ee974108', certificate_enabled=false. GET /api/courses now returns 19 total courses including the new external course. GET /api/courses/{external_course_id} returns correct fields including course_type, external_url, and certificate_enabled. All external course functionality working correctly."
+
+  - task: "Certificate System Testing"
+    implemented: true
+    working: true
+    file: "backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+        - working: true
+          agent: "testing"
+          comment: "✅ CERTIFICATE SYSTEM FULLY TESTED: GET /api/my-certificates with authentication returns empty array for new users (correct behavior). GET /api/my-certificates without authentication correctly returns 401 Unauthorized. GET /api/certificate/{certificate_id} with non-existent ID correctly returns 404 Not Found. All certificate API endpoints working with proper authentication and error handling."
+
+  - task: "Admin Panel External Course Creation"
+    implemented: true
+    working: true
+    file: "backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+        - working: true
+          agent: "testing"
+          comment: "✅ ADMIN PANEL EXTERNAL COURSE CREATION TESTED: Admin authentication working correctly with admin@nnacademy.com/Admin@123. POST /api/admin/courses successfully creates external courses with all required fields (title, description, price_inr, category, instructor, duration, course_type, external_url, certificate_enabled). Admin endpoints properly protected with authorization header verification."
+
+  - task: "Course Detail Page for External Courses"
+    implemented: true
+    working: true
+    file: "backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+        - working: true
+          agent: "testing"
+          comment: "✅ EXTERNAL COURSE DETAILS VERIFIED: GET /api/courses/{external_course_id} returns complete course details with all external course specific fields (course_type='external', external_url, certificate_enabled=false). Course structure includes all required fields for external course integration with TagMango platform."
+
+  - task: "Profile Certificate Display"
+    implemented: true
+    working: true
+    file: "backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+        - working: true
+          agent: "testing"
+          comment: "✅ CERTIFICATE DISPLAY BACKEND VERIFIED: GET /api/my-certificates endpoint working correctly with proper authentication. Returns empty array for new users as expected. Certificate retrieval by ID (GET /api/certificate/{certificate_id}) properly handles non-existent certificates with 404 response. Backend ready for certificate display functionality."
+
 frontend:
   - task: "Frontend Testing"
     implemented: true
