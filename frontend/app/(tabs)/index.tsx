@@ -159,7 +159,7 @@ export default function CoursesScreen() {
                     <Text style={styles.courseInfoText}>{course.students_count}+</Text>
                   </View>
                 </View>
-                <Text style={styles.coursePrice}>${course.price.toFixed(2)}</Text>
+                <Text style={styles.coursePrice}>₹{course.price_inr || (course.price * 83).toFixed(0)}</Text>
               </View>
             </TouchableOpacity>
           ))}
