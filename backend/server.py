@@ -117,6 +117,30 @@ class ProgressUpdate(BaseModel):
 class LiveClassBooking(BaseModel):
     class_id: str
 
+class AdminLogin(BaseModel):
+    username: str
+    password: str
+
+class CourseCreate(BaseModel):
+    title: str
+    description: str
+    price_inr: float  # Price in rupees
+    thumbnail: str
+    category: str
+    instructor: str
+    duration: str
+    lessons: List[Dict[str, Any]] = []
+
+class CourseUpdate(BaseModel):
+    title: Optional[str] = None
+    description: Optional[str] = None
+    price_inr: Optional[float] = None
+    thumbnail: Optional[str] = None
+    category: Optional[str] = None
+    instructor: Optional[str] = None
+    duration: Optional[str] = None
+    lessons: Optional[List[Dict[str, Any]]] = None
+
 # ============= Helper Functions =============
 
 def serialize_doc(doc):
