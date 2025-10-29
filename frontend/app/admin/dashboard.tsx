@@ -76,6 +76,9 @@ export default function AdminDashboard() {
     setCategory('makeup');
     setInstructor('');
     setDuration('');
+    setCourseType('internal');
+    setExternalUrl('');
+    setCertificateEnabled(true);
     setShowAddModal(true);
   };
 
