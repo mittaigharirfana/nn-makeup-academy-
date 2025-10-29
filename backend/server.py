@@ -456,6 +456,126 @@ async def get_certificate(certificate_id: str):
 
 # ============= Payment APIs =============
 
+@api_router.post("/payment/create-razorpay-order")
+async def create_razorpay_order(request: CheckoutRequest, authorization: Optional[str] = Header(None)):
+    """Create Razorpay order for course enrollment"""
+    if not authorization:
+        raise HTTPException(status_code=401, detail="Not authenticated")
+    
+    user_id = authorization.replace("Bearer ", "")
+    
+    # Get course details
+    course = await db.courses.find_one({"_id": ObjectId(request.course_id)})
+    if not course:
+        raise HTTPException(status_code=404, detail="Course not found")
+    
+    # Check if already enrolled
+    existing_enrollment = await db.enrollments.find_one({
+        "user_id": user_id,
+        "course_id": request.course_id
+    })
+    
+    if existing_enrollment:
+        raise HTTPException(status_code=400, detail="Already enrolled in this course")
+    
+    try:
+        # Get price in paise (Razorpay uses smallest currency unit)
+        price_inr = course.get('price_inr', course.get('price', 0) * 83)
+        amount_paise = int(price_inr * 100)  # Convert to paise
+        
+        # Create Razorpay order
+        order_data = {
+            "amount": amount_paise,
+            "currency": "INR",
+            "receipt": f"order_{request.course_id}_{user_id[:8]}",
+            "notes": {
+                "user_id": user_id,
+                "course_id": request.course_id,
+                "course_title": course['title']
+            }
+        }
+        
+        razorpay_order = razorpay_client.order.create(data=order_data)
+        
+        # Store order in database
+        order_record = {
+            "user_id": user_id,
+            "course_id": request.course_id,
+            "order_id": razorpay_order['id'],
+            "amount": price_inr,
+            "currency": "INR",
+            "status": "created",
+            "created_at": datetime.utcnow()
+        }
+        
+        await db.payment_orders.insert_one(order_record)
+        
+        return {
+            "order_id": razorpay_order['id'],
+            "amount": amount_paise,
+            "currency": "INR",
+            "key_id": RAZORPAY_KEY_ID
+        }
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to create order: {str(e)}")
+
+@api_router.post("/payment/verify-razorpay")
+async def verify_razorpay_payment(
+    order_id: str,
+    payment_id: str,
+    signature: str,
+    authorization: Optional[str] = Header(None)
+):
+    """Verify Razorpay payment and enroll user"""
+    if not authorization:
+        raise HTTPException(status_code=401, detail="Not authenticated")
+    
+    user_id = authorization.replace("Bearer ", "")
+    
+    try:
+        # Verify payment signature
+        params_dict = {
+            'razorpay_order_id': order_id,
+            'razorpay_payment_id': payment_id,
+            'razorpay_signature': signature
+        }
+        
+        razorpay_client.utility.verify_payment_signature(params_dict)
+        
+        # Get order details
+        order = await db.payment_orders.find_one({"order_id": order_id})
+        if not order:
+            raise HTTPException(status_code=404, detail="Order not found")
+        
+        # Update order status
+        await db.payment_orders.update_one(
+            {"order_id": order_id},
+            {"$set": {"status": "paid", "payment_id": payment_id, "paid_at": datetime.utcnow()}}
+        )
+        
+        # Enroll user in course
+        enrollment = {
+            "user_id": user_id,
+            "course_id": order['course_id'],
+            "enrolled_at": datetime.utcnow(),
+            "completed_lessons": [],
+            "progress": 0
+        }
+        
+        await db.enrollments.insert_one(enrollment)
+        
+        # Update user's enrolled courses
+        await db.users.update_one(
+            {"_id": ObjectId(user_id)},
+            {"$addToSet": {"enrolled_courses": order['course_id']}}
+        )
+        
+        return {"success": True, "message": "Payment verified and enrolled successfully"}
+        
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=f"Payment verification failed: {str(e)}")
+
 @api_router.post("/payment/create-checkout")
 async def create_checkout(
     request: CheckoutRequest,
