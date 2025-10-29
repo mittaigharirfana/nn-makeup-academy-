@@ -576,6 +576,145 @@ async def get_my_live_classes(authorization: Optional[str] = Header(None)):
     
     return [serialize_doc(lc) for lc in live_classes]
 
+# ============= Admin APIs =============
+
+@api_router.post("/admin/login")
+async def admin_login(request: AdminLogin):
+    """Admin login"""
+    if request.username == ADMIN_USERNAME and request.password == ADMIN_PASSWORD:
+        # In production, use JWT tokens
+        admin_token = f"admin_{request.username}"
+        return {
+            "success": True,
+            "message": "Admin login successful",
+            "token": admin_token,
+            "user": {"username": request.username, "role": "admin"}
+        }
+    else:
+        raise HTTPException(status_code=401, detail="Invalid admin credentials")
+
+def verify_admin(authorization: Optional[str] = Header(None)):
+    """Verify admin token"""
+    if not authorization or not authorization.startswith("admin_"):
+        raise HTTPException(status_code=403, detail="Admin access required")
+    return True
+
+@api_router.post("/admin/courses")
+async def create_course(
+    request: CourseCreate,
+    authorization: Optional[str] = Header(None)
+):
+    """Create new course (Admin only)"""
+    verify_admin(authorization)
+    
+    # Convert INR to USD (approximate rate: 1 USD = 83 INR)
+    price_usd = round(request.price_inr / 83, 2)
+    
+    new_course = {
+        "title": request.title,
+        "description": request.description,
+        "price": price_usd,
+        "price_inr": request.price_inr,
+        "thumbnail": request.thumbnail,
+        "category": request.category,
+        "instructor": request.instructor,
+        "duration": request.duration,
+        "students_count": 0,
+        "lessons": request.lessons
+    }
+    
+    result = await db.courses.insert_one(new_course)
+    new_course['_id'] = result.inserted_id
+    
+    return {
+        "success": True,
+        "message": "Course created successfully",
+        "course": serialize_doc(new_course)
+    }
+
+@api_router.put("/admin/courses/{course_id}")
+async def update_course(
+    course_id: str,
+    request: CourseUpdate,
+    authorization: Optional[str] = Header(None)
+):
+    """Update existing course (Admin only)"""
+    verify_admin(authorization)
+    
+    update_data = {}
+    if request.title is not None:
+        update_data['title'] = request.title
+    if request.description is not None:
+        update_data['description'] = request.description
+    if request.price_inr is not None:
+        update_data['price_inr'] = request.price_inr
+        update_data['price'] = round(request.price_inr / 83, 2)
+    if request.thumbnail is not None:
+        update_data['thumbnail'] = request.thumbnail
+    if request.category is not None:
+        update_data['category'] = request.category
+    if request.instructor is not None:
+        update_data['instructor'] = request.instructor
+    if request.duration is not None:
+        update_data['duration'] = request.duration
+    if request.lessons is not None:
+        update_data['lessons'] = request.lessons
+    
+    await db.courses.update_one(
+        {"_id": ObjectId(course_id)},
+        {"$set": update_data}
+    )
+    
+    course = await db.courses.find_one({"_id": ObjectId(course_id)})
+    
+    return {
+        "success": True,
+        "message": "Course updated successfully",
+        "course": serialize_doc(course)
+    }
+
+@api_router.delete("/admin/courses/{course_id}")
+async def delete_course(
+    course_id: str,
+    authorization: Optional[str] = Header(None)
+):
+    """Delete course (Admin only)"""
+    verify_admin(authorization)
+    
+    # Delete course
+    await db.courses.delete_one({"_id": ObjectId(course_id)})
+    
+    # Also delete related enrollments
+    await db.enrollments.delete_many({"course_id": course_id})
+    
+    return {
+        "success": True,
+        "message": "Course deleted successfully"
+    }
+
+@api_router.get("/admin/stats")
+async def get_admin_stats(authorization: Optional[str] = Header(None)):
+    """Get admin dashboard statistics"""
+    verify_admin(authorization)
+    
+    total_courses = await db.courses.count_documents({})
+    total_users = await db.users.count_documents({})
+    total_enrollments = await db.enrollments.count_documents({})
+    total_revenue = await db.payment_transactions.aggregate([
+        {"$match": {"payment_status": "paid"}},
+        {"$group": {"_id": None, "total": {"$sum": "$amount"}}}
+    ]).to_list(1)
+    
+    revenue = total_revenue[0]['total'] if total_revenue else 0
+    
+    return {
+        "total_courses": total_courses,
+        "total_users": total_users,
+        "total_enrollments": total_enrollments,
+        "total_revenue_usd": round(revenue, 2),
+        "total_revenue_inr": round(revenue * 83, 2)
+    }
+
 # ============= Admin/Seed APIs =============
 
 @api_router.post("/admin/seed-data")
