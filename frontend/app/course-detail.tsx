@@ -446,6 +446,34 @@ const styles = StyleSheet.create({
     color: '#999',
     marginLeft: 4,
   },
+  syllabusContainer: {
+    marginTop: 12,
+    paddingTop: 12,
+    borderTopWidth: 1,
+    borderTopColor: '#F0F0F0',
+  },
+  syllabusSection: {
+    marginBottom: 8,
+  },
+  syllabusTitle: {
+    fontSize: 12,
+    fontWeight: 'bold',
+    color: '#FF1493',
+    marginBottom: 4,
+  },
+  syllabusItem: {
+    fontSize: 11,
+    color: '#666',
+    marginLeft: 8,
+    lineHeight: 16,
+  },
+  syllabusMore: {
+    fontSize: 11,
+    color: '#999',
+    fontStyle: 'italic',
+    marginLeft: 8,
+    marginTop: 2,
+  },
   footer: {
     flexDirection: 'row',
     alignItems: 'center',
