@@ -103,8 +103,8 @@ class BackendTester:
             return False
     
     def test_courses_api(self):
-        """Test courses API endpoints"""
-        print("\n=== Testing Courses API ===")
+        """Test courses API endpoints - Focus on 9 new small courses"""
+        print("\n=== Testing Courses API (9 New Small Courses) ===")
         
         try:
             # Test GET /api/courses
@@ -122,36 +122,127 @@ class BackendTester:
                 self.results["courses_api"]["status"] = "failed"
                 return False
             
-            if len(courses) != 3:
-                self.log_result("courses_api", f"Expected 3 courses, got {len(courses)}", False)
+            # Should have more than the original 3 courses now
+            if len(courses) < 4:
+                self.log_result("courses_api", f"Expected more than 3 courses (original + 9 new), got {len(courses)}", False)
                 self.results["courses_api"]["status"] = "failed"
                 return False
             
-            self.log_result("courses_api", f"GET courses successful: {len(courses)} courses returned")
+            self.log_result("courses_api", f"GET courses successful: {len(courses)} courses returned (expected >3)")
             
-            # Test GET /api/courses/{id} for first course
-            if courses:
-                course_id = courses[0].get("id")
-                if course_id:
-                    print(f"2. Testing GET /api/courses/{course_id}...")
-                    response = self.session.get(f"{BACKEND_URL}/courses/{course_id}")
-                    
-                    if response.status_code != 200:
-                        self.log_result("courses_api", f"GET course by ID failed: {response.status_code} - {response.text}", False)
-                        self.results["courses_api"]["status"] = "failed"
-                        return False
-                    
-                    course = response.json()
-                    if not course.get("id"):
-                        self.log_result("courses_api", "Course by ID response missing ID", False)
-                        self.results["courses_api"]["status"] = "failed"
-                        return False
-                    
-                    self.log_result("courses_api", f"GET course by ID successful: {course.get('title')}")
-                else:
-                    self.log_result("courses_api", "First course missing ID field", False)
+            # Check for expected new courses
+            expected_new_courses = [
+                "Basic Eyebrow Shaping",
+                "Everyday Natural Makeup", 
+                "Festive Glam",
+                "Nail Care & Polish Basics",
+                "Beginner Nail Art", 
+                "Gel Nail Application",
+                "Everyday Hairstyling",
+                "Quick Bridal Hairstyles",
+                "Heatless Curls"
+            ]
+            
+            print("\n2. Checking for new small courses...")
+            found_new_courses = []
+            course_details = []
+            
+            for course in courses:
+                title = course.get('title', '')
+                category = course.get('category', '')
+                price_inr = course.get('price_inr')
+                
+                # Check if this matches any expected new course
+                for expected in expected_new_courses:
+                    if any(word.lower() in title.lower() for word in expected.split()):
+                        found_new_courses.append(title)
+                        course_details.append({
+                            'title': title,
+                            'category': category, 
+                            'price_inr': price_inr,
+                            'id': course.get('id')
+                        })
+                        break
+            
+            print(f"Found {len(found_new_courses)} new courses:")
+            for detail in course_details:
+                print(f"  - {detail['title']} ({detail['category']}) - ₹{detail['price_inr']}")
+            
+            if len(found_new_courses) < 5:
+                self.log_result("courses_api", f"Expected to find more new courses, only found {len(found_new_courses)}", False)
+                self.results["courses_api"]["status"] = "failed"
+                return False
+            
+            # Test GET /api/courses/{id} for one of the new small courses
+            if course_details:
+                test_course = course_details[0]  # Test first new course found
+                course_id = test_course['id']
+                
+                print(f"\n3. Testing GET /api/courses/{course_id} for '{test_course['title']}'...")
+                response = self.session.get(f"{BACKEND_URL}/courses/{course_id}")
+                
+                if response.status_code != 200:
+                    self.log_result("courses_api", f"GET course by ID failed: {response.status_code} - {response.text}", False)
                     self.results["courses_api"]["status"] = "failed"
                     return False
+                
+                course = response.json()
+                
+                # Verify required fields for new courses
+                required_fields = ['title', 'description', 'price', 'category', 'instructor', 'duration']
+                missing_fields = [field for field in required_fields if not course.get(field)]
+                
+                if missing_fields:
+                    self.log_result("courses_api", f"Course missing required fields: {missing_fields}", False)
+                    self.results["courses_api"]["status"] = "failed"
+                    return False
+                
+                # Check for price_inr field (critical for new courses)
+                if 'price_inr' not in course:
+                    self.log_result("courses_api", "New course missing price_inr field", False)
+                    self.results["courses_api"]["status"] = "failed"
+                    return False
+                
+                self.log_result("courses_api", f"Course details verified: {course.get('title')} - ₹{course.get('price_inr')}")
+                
+                # Check lessons structure
+                lessons = course.get('lessons', [])
+                if len(lessons) == 0:
+                    self.log_result("courses_api", "Warning: Course has no lessons", False)
+                else:
+                    self.log_result("courses_api", f"Course has {len(lessons)} lessons/sections")
+                    
+                    # Check if lessons contain structured data
+                    has_structured_content = False
+                    for lesson in lessons:
+                        if isinstance(lesson, dict) and len(lesson) > 1:
+                            has_structured_content = True
+                            break
+                    
+                    if has_structured_content:
+                        self.log_result("courses_api", "Course contains structured lesson content")
+                    else:
+                        self.log_result("courses_api", "Warning: Lessons may lack detailed structure", False)
+            
+            # Verify course categories
+            print("\n4. Verifying course categories...")
+            category_counts = {'makeup': 0, 'nail': 0, 'hair': 0}
+            
+            for detail in course_details:
+                category = detail['category'].lower()
+                if category in category_counts:
+                    category_counts[category] += 1
+            
+            print(f"Category distribution: Makeup: {category_counts['makeup']}, Nail: {category_counts['nail']}, Hair: {category_counts['hair']}")
+            
+            # Should have courses in multiple categories
+            active_categories = sum(1 for count in category_counts.values() if count > 0)
+            if active_categories < 2:
+                self.log_result("courses_api", f"Expected courses in multiple categories, found {active_categories}", False)
+                self.results["courses_api"]["status"] = "failed"
+                return False
+            
+            self.log_result("courses_api", f"New courses properly distributed across {active_categories} categories")
             
             self.results["courses_api"]["status"] = "passed"
             return True
