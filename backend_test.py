@@ -168,7 +168,7 @@ class BackendTester:
         
         try:
             print("1. Creating external course via POST /api/admin/courses...")
-            headers = {"admin_token": self.admin_token, "Content-Type": "application/json"}
+            headers = {"Authorization": self.admin_token, "Content-Type": "application/json"}
             response = self.session.post(f"{BACKEND_URL}/admin/courses", 
                                        json=external_course_data, 
                                        headers=headers)
