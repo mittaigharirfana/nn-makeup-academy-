@@ -177,10 +177,7 @@ metadata:
 
 test_plan:
   current_focus:
-    - "Authentication Flow (send-otp and verify-otp)"
     - "Courses API endpoints"
-    - "Live Classes API"
-    - "My Courses API with Authentication"
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
@@ -188,3 +185,5 @@ test_plan:
 agent_communication:
     - agent: "testing"
       message: "Comprehensive backend testing completed successfully. All 4 critical API flows tested and working: 1) Authentication (OTP send/verify) - ✅ Working, 2) Courses API (GET courses, GET course by ID) - ✅ Working, 3) Live Classes API - ✅ Working, 4) My Courses with auth - ✅ Working. Backend URL https://makeupacademy.preview.emergentagent.com/api is responding correctly. Data seeding successful. All endpoints return 200 OK with proper JSON structures. Authentication middleware correctly protects /my-courses endpoint."
+    - agent: "main"
+      message: "Added 9 new small courses from Excel file with complete theory and practical syllabus. Please test: 1) Verify GET /api/courses returns all courses including the 9 new ones, 2) Test GET /api/courses/{course_id} for one of the new small courses (e.g., Basic Eyebrow Shaping), 3) Verify course structure includes proper theory modules and practical videos, 4) Check that price_inr is present for all new courses."
