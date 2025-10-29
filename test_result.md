@@ -184,4 +184,4 @@ test_plan:
 
 agent_communication:
     - agent: "testing"
-      message: "Comprehensive backend testing completed successfully. All 4 critical API flows tested and working: 1) Authentication (OTP send/verify) - ✅ Working, 2) Courses API (GET courses, GET course by ID) - ✅ Working, 3) Live Classes API - ✅ Working, 4) My Courses with auth - ✅ Working. Backend URL https://beautylearn.preview.emergentagent.com/api is responding correctly. Data seeding successful. All endpoints return 200 OK with proper JSON structures. Authentication middleware correctly protects /my-courses endpoint."
+      message: "Comprehensive backend testing completed successfully. All 4 critical API flows tested and working: 1) Authentication (OTP send/verify) - ✅ Working, 2) Courses API (GET courses, GET course by ID) - ✅ Working, 3) Live Classes API - ✅ Working, 4) My Courses with auth - ✅ Working. Backend URL https://makeupacademy.preview.emergentagent.com/api is responding correctly. Data seeding successful. All endpoints return 200 OK with proper JSON structures. Authentication middleware correctly protects /my-courses endpoint."
