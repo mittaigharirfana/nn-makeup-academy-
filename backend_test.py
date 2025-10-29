@@ -38,7 +38,45 @@ class BackendTester:
             "timestamp": datetime.now().isoformat()
         })
     
-    def test_auth_flow(self):
+    def test_admin_auth(self):
+        """Test admin authentication"""
+        print("\n=== Testing Admin Authentication ===")
+        
+        try:
+            print("1. Testing admin login...")
+            response = self.session.post(
+                f"{BACKEND_URL}/admin/login",
+                json={"username": "admin@nnacademy.com", "password": "Admin@123"},
+                headers={"Content-Type": "application/json"}
+            )
+            
+            if response.status_code != 200:
+                self.log_result("admin_auth", f"Admin login failed: {response.status_code} - {response.text}", False)
+                self.results["admin_auth"]["status"] = "failed"
+                return False
+            
+            admin_data = response.json()
+            if not admin_data.get("success"):
+                self.log_result("admin_auth", f"Admin login response invalid: {admin_data}", False)
+                self.results["admin_auth"]["status"] = "failed"
+                return False
+            
+            self.admin_token = admin_data.get("token")
+            if not self.admin_token:
+                self.log_result("admin_auth", "Admin token not found in response", False)
+                self.results["admin_auth"]["status"] = "failed"
+                return False
+            
+            self.log_result("admin_auth", f"Admin authentication successful, token: {self.admin_token[:15]}...")
+            self.results["admin_auth"]["status"] = "passed"
+            return True
+            
+        except Exception as e:
+            self.log_result("admin_auth", f"Admin authentication error: {str(e)}", False)
+            self.results["admin_auth"]["status"] = "failed"
+            return False
+    
+    def test_user_auth(self):
         """Test authentication flow: send OTP -> verify OTP"""
         print("\n=== Testing Authentication Flow ===")
         
