@@ -460,7 +460,7 @@ async def get_certificate(certificate_id: str):
 # ============= Payment APIs =============
 
 @api_router.post("/payment/create-razorpay-order")
-async def create_razorpay_order(request: CheckoutRequest, authorization: Optional[str] = Header(None)):
+async def create_razorpay_order(request: RazorpayOrderRequest, authorization: Optional[str] = Header(None)):
     """Create Razorpay order for course enrollment"""
     if not authorization:
         raise HTTPException(status_code=401, detail="Not authenticated")
