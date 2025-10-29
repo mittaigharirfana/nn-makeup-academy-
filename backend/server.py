@@ -84,6 +84,9 @@ class Course(BaseModel):
     instructor: str
     duration: str
     students_count: int = 0
+    course_type: str = "internal"  # "internal" or "external"
+    external_url: Optional[str] = None  # For TagMango or other external platforms
+    certificate_enabled: bool = True  # Whether to issue certificates
 
 class LiveClass(BaseModel):
     id: Optional[str] = None
