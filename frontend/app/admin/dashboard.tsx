@@ -25,6 +25,9 @@ export default function AdminDashboard() {
   const [category, setCategory] = useState('makeup');
   const [instructor, setInstructor] = useState('');
   const [duration, setDuration] = useState('');
+  const [courseType, setCourseType] = useState('internal');
+  const [externalUrl, setExternalUrl] = useState('');
+  const [certificateEnabled, setCertificateEnabled] = useState(true);
 
   useEffect(() => {
     checkAuth();
