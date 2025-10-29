@@ -625,6 +625,27 @@ const styles = StyleSheet.create({
   categoryButtonTextActive: {
     color: '#FFFFFF',
   },
+  checkboxContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 16,
+    marginBottom: 8,
+  },
+  checkbox: {
+    width: 24,
+    height: 24,
+    borderRadius: 6,
+    borderWidth: 2,
+    borderColor: '#FF1493',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 12,
+  },
+  checkboxLabel: {
+    flex: 1,
+    fontSize: 14,
+    color: '#333',
+  },
   saveButton: {
     backgroundColor: '#FF1493',
     borderRadius: 12,
