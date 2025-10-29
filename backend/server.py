@@ -25,6 +25,13 @@ db = client[os.environ['DB_NAME']]
 # Stripe setup
 STRIPE_API_KEY = os.environ['STRIPE_API_KEY']
 
+# Razorpay setup
+RAZORPAY_KEY_ID = os.environ['RAZORPAY_KEY_ID']
+RAZORPAY_KEY_SECRET = os.environ['RAZORPAY_KEY_SECRET']
+
+import razorpay
+razorpay_client = razorpay.Client(auth=(RAZORPAY_KEY_ID, RAZORPAY_KEY_SECRET))
+
 # Twilio setup
 TWILIO_ACCOUNT_SID = os.environ['TWILIO_ACCOUNT_SID']
 TWILIO_AUTH_TOKEN = os.environ['TWILIO_AUTH_TOKEN']
