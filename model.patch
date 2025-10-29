@@ -1,149 +1,265 @@
+diff --git a/frontend/app/(tabs)/profile.tsx b/frontend/app/(tabs)/profile.tsx
+index 0b23aca..24bfbfa 100644
+--- a/frontend/app/(tabs)/profile.tsx
++++ b/frontend/app/(tabs)/profile.tsx
+@@ -162,6 +162,44 @@ export default function ProfileScreen() {
+             </View>
+           </View>
+ 
++          {/* Certificates Section */}
++          <View style={styles.section}>
++            <Text style={styles.sectionTitle}>My Certificates</Text>
++            {certificates.length === 0 ? (
++              <View style={styles.emptyCertificates}>
++                <Ionicons name="ribbon-outline" size={48} color="#CCC" />
++                <Text style={styles.emptyText}>No certificates yet</Text>
++                <Text style={styles.emptySubtext}>
++                  Complete a course to earn your first certificate!
++                </Text>
++              </View>
++            ) : (
++              <View style={styles.certificatesCard}>
++                {certificates.map((cert, index) => (
++                  <React.Fragment key={cert.id}>
++                    {index > 0 && <View style={styles.divider} />}
++                    <TouchableOpacity 
++                      style={styles.certificateItem}
++                      onPress={() => router.push(`/certificate?id=${cert.certificate_id}`)}
++                    >
++                      <View style={styles.certificateIcon}>
++                        <Ionicons name="ribbon" size={24} color="#FFD700" />
++                      </View>
++                      <View style={styles.certificateInfo}>
++                        <Text style={styles.certificateTitle}>{cert.course_title}</Text>
++                        <Text style={styles.certificateId}>ID: {cert.certificate_id}</Text>
++                        <Text style={styles.certificateDate}>
++                          Completed: {new Date(cert.completion_date).toLocaleDateString()}
++                        </Text>
++                      </View>
++                      <Ionicons name="chevron-forward" size={20} color="#CCC" />
++                    </TouchableOpacity>
++                  </React.Fragment>
++                ))}
++              </View>
++            )}
++          </View>
++
+           <View style={styles.section}>
+             <Text style={styles.sectionTitle}>Support</Text>
+             <View style={styles.menuCard}>
+@@ -365,4 +403,60 @@ const styles = StyleSheet.create({
+     color: '#999',
+     marginBottom: 32,
+   },
++  emptyCertificates: {
++    backgroundColor: '#FFFFFF',
++    borderRadius: 12,
++    padding: 40,
++    alignItems: 'center',
++  },
++  emptyText: {
++    fontSize: 16,
++    fontWeight: '600',
++    color: '#666',
++    marginTop: 12,
++  },
++  emptySubtext: {
++    fontSize: 14,
++    color: '#999',
++    textAlign: 'center',
++    marginTop: 4,
++  },
++  certificatesCard: {
++    backgroundColor: '#FFFFFF',
++    borderRadius: 12,
++    padding: 4,
++  },
++  certificateItem: {
++    flexDirection: 'row',
++    alignItems: 'center',
++    paddingVertical: 16,
++    paddingHorizontal: 12,
++  },
++  certificateIcon: {
++    width: 40,
++    height: 40,
++    borderRadius: 20,
++    backgroundColor: '#FFF9E6',
++    justifyContent: 'center',
++    alignItems: 'center',
++  },
++  certificateInfo: {
++    flex: 1,
++    marginLeft: 12,
++  },
++  certificateTitle: {
++    fontSize: 16,
++    fontWeight: '600',
++    color: '#333',
++  },
++  certificateId: {
++    fontSize: 12,
++    color: '#999',
++    marginTop: 2,
++  },
++  certificateDate: {
++    fontSize: 12,
++    color: '#666',
++    marginTop: 2,
++  },
+ });
+\ No newline at end of file
 diff --git a/model.patch b/model.patch
-index db895d4..e69de29 100644
+index de1e683..e69de29 100644
 --- a/model.patch
 +++ b/model.patch
-@@ -1,101 +0,0 @@
+@@ -1,149 +0,0 @@
 -diff --git a/model.patch b/model.patch
--index aff235d..e69de29 100644
+-index db895d4..e69de29 100644
 ---- a/model.patch
 -+++ b/model.patch
--@@ -1,96 +0,0 @@
---diff --git a/test_result.md b/test_result.md
---index 187cba4..4df6980 100644
------ a/test_result.md
---+++ b/test_result.md
---@@ -100,4 +100,88 @@
--- 
--- #====================================================================================================
--- # Testing Data - Main Agent and testing sub agent both should log testing data below this section
----#====================================================================================================
---\ No newline at end of file
---+#====================================================================================================
---+
---+user_problem_statement: "Test the N&N Makeup Academy app backend comprehensively including authentication flow, courses API, live classes, and my courses with authentication"
---+
---+backend:
---+  - task: "Authentication Flow (send-otp and verify-otp)"
---+    implemented: true
---+    working: true
---+    file: "backend/server.py"
---+    stuck_count: 0
---+    priority: "high"
---+    needs_retesting: false
---+    status_history:
---+        - working: true
---+          agent: "testing"
---+          comment: "✅ Authentication flow tested successfully. POST /api/auth/send-otp with phone 9876543210 returned OTP 997498. POST /api/auth/verify-otp successfully verified OTP and returned token 6900f086bf... Login flow working correctly."
---+
---+  - task: "Courses API endpoints"
---+    implemented: true
---+    working: true
---+    file: "backend/server.py"
---+    stuck_count: 0
---+    priority: "high"
---+    needs_retesting: false
---+    status_history:
---+        - working: true
---+          agent: "testing"
---+          comment: "✅ Courses API tested successfully. GET /api/courses returned 3 courses as expected. GET /api/courses/{id} for specific course (Makeup Mastery) returned correct course details. All endpoints returning 200 OK with proper data structures."
---+
---+  - task: "Live Classes API"
---+    implemented: true
---+    working: true
---+    file: "backend/server.py"
---+    stuck_count: 0
---+    priority: "high"
---+    needs_retesting: false
---+    status_history:
---+        - working: true
---+          agent: "testing"
---+          comment: "✅ Live Classes API tested successfully. GET /api/live-classes returned 3 upcoming classes with all required fields (id, title, description, date_time, instructor). API returning proper data structure."
---+
---+  - task: "My Courses API with Authentication"
---+    implemented: true
---+    working: true
---+    file: "backend/server.py"
---+    stuck_count: 0
---+    priority: "high"
---+    needs_retesting: false
---+    status_history:
---+        - working: true
---+          agent: "testing"
---+          comment: "✅ My Courses API tested successfully. GET /api/my-courses with Bearer token returned 0 enrolled courses (correct for new user). Correctly rejected unauthenticated request with 401 status. Authentication middleware working properly."
---+
---+frontend:
---+  - task: "Frontend Testing"
---+    implemented: true
---+    working: "NA"
---+    file: "frontend/src/"
---+    stuck_count: 0
---+    priority: "low"
---+    needs_retesting: false
---+    status_history:
---+        - working: "NA"
---+          agent: "testing"
---+          comment: "Frontend testing not performed as per system limitations - testing agent focuses only on backend API testing."
---+
---+metadata:
---+  created_by: "testing_agent"
---+  version: "1.0"
---+  test_sequence: 1
---+  run_ui: false
---+
---+test_plan:
---+  current_focus:
---+    - "Authentication Flow (send-otp and verify-otp)"
---+    - "Courses API endpoints"
---+    - "Live Classes API"
---+    - "My Courses API with Authentication"
---+  stuck_tasks: []
---+  test_all: false
---+  test_priority: "high_first"
---+
---+agent_communication:
---+    - agent: "testing"
---+      message: "Comprehensive backend testing completed successfully. All 4 critical API flows tested and working: 1) Authentication (OTP send/verify) - ✅ Working, 2) Courses API (GET courses, GET course by ID) - ✅ Working, 3) Live Classes API - ✅ Working, 4) My Courses with auth - ✅ Working. Backend URL https://makeupacademy.preview.emergentagent.com/api is responding correctly. Data seeding successful. All endpoints return 200 OK with proper JSON structures. Authentication middleware correctly protects /my-courses endpoint."
---\ No newline at end of file
-diff --git a/test_result.md b/test_result.md
-index e0fd228..033001c 100644
---- a/test_result.md
-+++ b/test_result.md
-@@ -123,7 +123,7 @@ backend:
-     file: "backend/server.py"
-     stuck_count: 0
-     priority: "high"
--    needs_retesting: true
-+    needs_retesting: false
-     status_history:
-         - working: true
-           agent: "testing"
-@@ -131,6 +131,9 @@ backend:
-         - working: true
-           agent: "main"
-           comment: "Added 9 new small courses from Excel file (N_and_N_Academy_Courses.xlsx). Categories: 3 Makeup courses (Basic Eyebrow Shaping ₹999, Everyday Natural Makeup ₹1499, Festive Glam ₹1999), 3 Nail courses (Nail Care ₹999, Beginner Nail Art ₹1499, Gel Nail ₹1999), 3 Hair courses (Everyday Hairstyling ₹999, Quick Bridal ₹1999, Heatless Curls ₹1499). All courses include detailed theory syllabus with modules and practical video lessons. Need to verify API returns all courses correctly."
-+        - working: true
-+          agent: "testing"
-+          comment: "✅ 9 NEW SMALL COURSES VERIFIED: GET /api/courses now returns 17 total courses (original 3 + 8 existing + 9 new). All 9 requested courses found with correct pricing: Makeup (Basic Eyebrow ₹999, Everyday Natural ₹1499, Festive Glam ₹1999), Nail (Care & Polish ₹999, Beginner Art ₹1499, Gel Application ₹1999), Hair (Everyday Styling ₹999, Quick Bridal ₹1999, Heatless Curls ₹1499). GET /api/courses/6901f80fd184cdb3d0d5e94e (Basic Eyebrow) returns complete course with price_inr field, proper theory modules (6 modules) and practical videos (6 videos). Course categories properly distributed. All endpoints working correctly."
- 
-   - task: "Live Classes API"
-     implemented: true
-@@ -176,8 +179,7 @@ metadata:
-   run_ui: false
- 
- test_plan:
--  current_focus:
--    - "Courses API endpoints"
-+  current_focus: []
-   stuck_tasks: []
-   test_all: false
-   test_priority: "high_first"
-@@ -186,4 +188,6 @@ agent_communication:
-     - agent: "testing"
-       message: "Comprehensive backend testing completed successfully. All 4 critical API flows tested and working: 1) Authentication (OTP send/verify) - ✅ Working, 2) Courses API (GET courses, GET course by ID) - ✅ Working, 3) Live Classes API - ✅ Working, 4) My Courses with auth - ✅ Working. Backend URL https://makeupacademy.preview.emergentagent.com/api is responding correctly. Data seeding successful. All endpoints return 200 OK with proper JSON structures. Authentication middleware correctly protects /my-courses endpoint."
-     - agent: "main"
--      message: "Added 9 new small courses from Excel file with complete theory and practical syllabus. Please test: 1) Verify GET /api/courses returns all courses including the 9 new ones, 2) Test GET /api/courses/{course_id} for one of the new small courses (e.g., Basic Eyebrow Shaping), 3) Verify course structure includes proper theory modules and practical videos, 4) Check that price_inr is present for all new courses."
-\ No newline at end of file
-+      message: "Added 9 new small courses from Excel file with complete theory and practical syllabus. Please test: 1) Verify GET /api/courses returns all courses including the 9 new ones, 2) Test GET /api/courses/{course_id} for one of the new small courses (e.g., Basic Eyebrow Shaping), 3) Verify course structure includes proper theory modules and practical videos, 4) Check that price_inr is present for all new courses."
-+    - agent: "testing"
-+      message: "✅ 9 NEW SMALL COURSES TESTING COMPLETED: All requested tests passed successfully. GET /api/courses returns 17 total courses (up from original 3). All 9 new courses verified with correct categories and pricing. Specific course ID 6901f80fd184cdb3d0d5e94e (Basic Eyebrow Shaping) tested - returns complete course structure with price_inr field, 6 theory modules, and 6 practical videos. Course categories properly distributed: Makeup (7 courses), Nail (5 courses), Hair (5 courses). All endpoints responding correctly. Backend API fully functional for the new small courses feature."
-\ No newline at end of file
+-@@ -1,101 +0,0 @@
+--diff --git a/model.patch b/model.patch
+--index aff235d..e69de29 100644
+----- a/model.patch
+--+++ b/model.patch
+--@@ -1,96 +0,0 @@
+---diff --git a/test_result.md b/test_result.md
+---index 187cba4..4df6980 100644
+------ a/test_result.md
+---+++ b/test_result.md
+---@@ -100,4 +100,88 @@
+--- 
+--- #====================================================================================================
+--- # Testing Data - Main Agent and testing sub agent both should log testing data below this section
+----#====================================================================================================
+---\ No newline at end of file
+---+#====================================================================================================
+---+
+---+user_problem_statement: "Test the N&N Makeup Academy app backend comprehensively including authentication flow, courses API, live classes, and my courses with authentication"
+---+
+---+backend:
+---+  - task: "Authentication Flow (send-otp and verify-otp)"
+---+    implemented: true
+---+    working: true
+---+    file: "backend/server.py"
+---+    stuck_count: 0
+---+    priority: "high"
+---+    needs_retesting: false
+---+    status_history:
+---+        - working: true
+---+          agent: "testing"
+---+          comment: "✅ Authentication flow tested successfully. POST /api/auth/send-otp with phone 9876543210 returned OTP 997498. POST /api/auth/verify-otp successfully verified OTP and returned token 6900f086bf... Login flow working correctly."
+---+
+---+  - task: "Courses API endpoints"
+---+    implemented: true
+---+    working: true
+---+    file: "backend/server.py"
+---+    stuck_count: 0
+---+    priority: "high"
+---+    needs_retesting: false
+---+    status_history:
+---+        - working: true
+---+          agent: "testing"
+---+          comment: "✅ Courses API tested successfully. GET /api/courses returned 3 courses as expected. GET /api/courses/{id} for specific course (Makeup Mastery) returned correct course details. All endpoints returning 200 OK with proper data structures."
+---+
+---+  - task: "Live Classes API"
+---+    implemented: true
+---+    working: true
+---+    file: "backend/server.py"
+---+    stuck_count: 0
+---+    priority: "high"
+---+    needs_retesting: false
+---+    status_history:
+---+        - working: true
+---+          agent: "testing"
+---+          comment: "✅ Live Classes API tested successfully. GET /api/live-classes returned 3 upcoming classes with all required fields (id, title, description, date_time, instructor). API returning proper data structure."
+---+
+---+  - task: "My Courses API with Authentication"
+---+    implemented: true
+---+    working: true
+---+    file: "backend/server.py"
+---+    stuck_count: 0
+---+    priority: "high"
+---+    needs_retesting: false
+---+    status_history:
+---+        - working: true
+---+          agent: "testing"
+---+          comment: "✅ My Courses API tested successfully. GET /api/my-courses with Bearer token returned 0 enrolled courses (correct for new user). Correctly rejected unauthenticated request with 401 status. Authentication middleware working properly."
+---+
+---+frontend:
+---+  - task: "Frontend Testing"
+---+    implemented: true
+---+    working: "NA"
+---+    file: "frontend/src/"
+---+    stuck_count: 0
+---+    priority: "low"
+---+    needs_retesting: false
+---+    status_history:
+---+        - working: "NA"
+---+          agent: "testing"
+---+          comment: "Frontend testing not performed as per system limitations - testing agent focuses only on backend API testing."
+---+
+---+metadata:
+---+  created_by: "testing_agent"
+---+  version: "1.0"
+---+  test_sequence: 1
+---+  run_ui: false
+---+
+---+test_plan:
+---+  current_focus:
+---+    - "Authentication Flow (send-otp and verify-otp)"
+---+    - "Courses API endpoints"
+---+    - "Live Classes API"
+---+    - "My Courses API with Authentication"
+---+  stuck_tasks: []
+---+  test_all: false
+---+  test_priority: "high_first"
+---+
+---+agent_communication:
+---+    - agent: "testing"
+---+      message: "Comprehensive backend testing completed successfully. All 4 critical API flows tested and working: 1) Authentication (OTP send/verify) - ✅ Working, 2) Courses API (GET courses, GET course by ID) - ✅ Working, 3) Live Classes API - ✅ Working, 4) My Courses with auth - ✅ Working. Backend URL https://makeupacademy.preview.emergentagent.com/api is responding correctly. Data seeding successful. All endpoints return 200 OK with proper JSON structures. Authentication middleware correctly protects /my-courses endpoint."
+---\ No newline at end of file
+-diff --git a/test_result.md b/test_result.md
+-index e0fd228..033001c 100644
+---- a/test_result.md
+-+++ b/test_result.md
+-@@ -123,7 +123,7 @@ backend:
+-     file: "backend/server.py"
+-     stuck_count: 0
+-     priority: "high"
+--    needs_retesting: true
+-+    needs_retesting: false
+-     status_history:
+-         - working: true
+-           agent: "testing"
+-@@ -131,6 +131,9 @@ backend:
+-         - working: true
+-           agent: "main"
+-           comment: "Added 9 new small courses from Excel file (N_and_N_Academy_Courses.xlsx). Categories: 3 Makeup courses (Basic Eyebrow Shaping ₹999, Everyday Natural Makeup ₹1499, Festive Glam ₹1999), 3 Nail courses (Nail Care ₹999, Beginner Nail Art ₹1499, Gel Nail ₹1999), 3 Hair courses (Everyday Hairstyling ₹999, Quick Bridal ₹1999, Heatless Curls ₹1499). All courses include detailed theory syllabus with modules and practical video lessons. Need to verify API returns all courses correctly."
+-+        - working: true
+-+          agent: "testing"
+-+          comment: "✅ 9 NEW SMALL COURSES VERIFIED: GET /api/courses now returns 17 total courses (original 3 + 8 existing + 9 new). All 9 requested courses found with correct pricing: Makeup (Basic Eyebrow ₹999, Everyday Natural ₹1499, Festive Glam ₹1999), Nail (Care & Polish ₹999, Beginner Art ₹1499, Gel Application ₹1999), Hair (Everyday Styling ₹999, Quick Bridal ₹1999, Heatless Curls ₹1499). GET /api/courses/6901f80fd184cdb3d0d5e94e (Basic Eyebrow) returns complete course with price_inr field, proper theory modules (6 modules) and practical videos (6 videos). Course categories properly distributed. All endpoints working correctly."
+- 
+-   - task: "Live Classes API"
+-     implemented: true
+-@@ -176,8 +179,7 @@ metadata:
+-   run_ui: false
+- 
+- test_plan:
+--  current_focus:
+--    - "Courses API endpoints"
+-+  current_focus: []
+-   stuck_tasks: []
+-   test_all: false
+-   test_priority: "high_first"
+-@@ -186,4 +188,6 @@ agent_communication:
+-     - agent: "testing"
+-       message: "Comprehensive backend testing completed successfully. All 4 critical API flows tested and working: 1) Authentication (OTP send/verify) - ✅ Working, 2) Courses API (GET courses, GET course by ID) - ✅ Working, 3) Live Classes API - ✅ Working, 4) My Courses with auth - ✅ Working. Backend URL https://makeupacademy.preview.emergentagent.com/api is responding correctly. Data seeding successful. All endpoints return 200 OK with proper JSON structures. Authentication middleware correctly protects /my-courses endpoint."
+-     - agent: "main"
+--      message: "Added 9 new small courses from Excel file with complete theory and practical syllabus. Please test: 1) Verify GET /api/courses returns all courses including the 9 new ones, 2) Test GET /api/courses/{course_id} for one of the new small courses (e.g., Basic Eyebrow Shaping), 3) Verify course structure includes proper theory modules and practical videos, 4) Check that price_inr is present for all new courses."
+-\ No newline at end of file
+-+      message: "Added 9 new small courses from Excel file with complete theory and practical syllabus. Please test: 1) Verify GET /api/courses returns all courses including the 9 new ones, 2) Test GET /api/courses/{course_id} for one of the new small courses (e.g., Basic Eyebrow Shaping), 3) Verify course structure includes proper theory modules and practical videos, 4) Check that price_inr is present for all new courses."
+-+    - agent: "testing"
+-+      message: "✅ 9 NEW SMALL COURSES TESTING COMPLETED: All requested tests passed successfully. GET /api/courses returns 17 total courses (up from original 3). All 9 new courses verified with correct categories and pricing. Specific course ID 6901f80fd184cdb3d0d5e94e (Basic Eyebrow Shaping) tested - returns complete course structure with price_inr field, 6 theory modules, and 6 practical videos. Course categories properly distributed: Makeup (7 courses), Nail (5 courses), Hair (5 courses). All endpoints responding correctly. Backend API fully functional for the new small courses feature."
+-\ No newline at end of file
