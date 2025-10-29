@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
-Backend API Testing for N&N Makeup Academy
-Tests authentication, courses, live classes, and my-courses endpoints
+N&N Makeup Academy Backend Testing - External Courses & Certificates
+Testing comprehensive backend functionality for external course support and certificate system.
 """
 
 import requests
@@ -16,12 +16,16 @@ class BackendTester:
     def __init__(self):
         self.session = requests.Session()
         self.auth_token = None
+        self.admin_token = None
         self.test_phone = "9876543210"
+        self.external_course_id = None
         self.results = {
-            "auth_flow": {"status": "pending", "details": []},
-            "courses_api": {"status": "pending", "details": []},
-            "live_classes": {"status": "pending", "details": []},
-            "my_courses": {"status": "pending", "details": []}
+            "admin_auth": {"status": "pending", "details": []},
+            "user_auth": {"status": "pending", "details": []},
+            "external_course_creation": {"status": "pending", "details": []},
+            "external_course_retrieval": {"status": "pending", "details": []},
+            "certificate_apis": {"status": "pending", "details": []},
+            "regression_tests": {"status": "pending", "details": []}
         }
     
     def log_result(self, category, message, success=True):
