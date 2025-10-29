@@ -77,8 +77,8 @@ class BackendTester:
             return False
     
     def test_user_auth(self):
-        """Test authentication flow: send OTP -> verify OTP"""
-        print("\n=== Testing Authentication Flow ===")
+        """Test user authentication flow: send OTP -> verify OTP"""
+        print("\n=== Testing User Authentication ===")
         
         try:
             # Step 1: Send OTP
@@ -90,24 +90,24 @@ class BackendTester:
             )
             
             if response.status_code != 200:
-                self.log_result("auth_flow", f"Send OTP failed: {response.status_code} - {response.text}", False)
-                self.results["auth_flow"]["status"] = "failed"
+                self.log_result("user_auth", f"Send OTP failed: {response.status_code} - {response.text}", False)
+                self.results["user_auth"]["status"] = "failed"
                 return False
             
             otp_data = response.json()
             if not otp_data.get("success"):
-                self.log_result("auth_flow", f"Send OTP response invalid: {otp_data}", False)
-                self.results["auth_flow"]["status"] = "failed"
+                self.log_result("user_auth", f"Send OTP response invalid: {otp_data}", False)
+                self.results["user_auth"]["status"] = "failed"
                 return False
             
             # Extract OTP from response (development mode)
             otp = otp_data.get("otp")
             if not otp:
-                self.log_result("auth_flow", "OTP not found in response", False)
-                self.results["auth_flow"]["status"] = "failed"
+                self.log_result("user_auth", "OTP not found in response", False)
+                self.results["user_auth"]["status"] = "failed"
                 return False
             
-            self.log_result("auth_flow", f"OTP sent successfully: {otp}")
+            self.log_result("user_auth", f"OTP sent successfully: {otp}")
             
             # Step 2: Verify OTP
             print(f"2. Verifying OTP: {otp}...")
@@ -118,264 +118,296 @@ class BackendTester:
             )
             
             if response.status_code != 200:
-                self.log_result("auth_flow", f"Verify OTP failed: {response.status_code} - {response.text}", False)
-                self.results["auth_flow"]["status"] = "failed"
+                self.log_result("user_auth", f"Verify OTP failed: {response.status_code} - {response.text}", False)
+                self.results["user_auth"]["status"] = "failed"
                 return False
             
             verify_data = response.json()
             if not verify_data.get("success"):
-                self.log_result("auth_flow", f"Verify OTP response invalid: {verify_data}", False)
-                self.results["auth_flow"]["status"] = "failed"
+                self.log_result("user_auth", f"Verify OTP response invalid: {verify_data}", False)
+                self.results["user_auth"]["status"] = "failed"
                 return False
             
             # Extract token
             self.auth_token = verify_data.get("token")
             if not self.auth_token:
-                self.log_result("auth_flow", "Token not found in verify response", False)
-                self.results["auth_flow"]["status"] = "failed"
+                self.log_result("user_auth", "Token not found in verify response", False)
+                self.results["user_auth"]["status"] = "failed"
                 return False
             
-            self.log_result("auth_flow", f"Authentication successful, token: {self.auth_token[:10]}...")
-            self.results["auth_flow"]["status"] = "passed"
+            self.log_result("user_auth", f"User authentication successful, token: {self.auth_token[:10]}...")
+            self.results["user_auth"]["status"] = "passed"
             return True
             
         except Exception as e:
-            self.log_result("auth_flow", f"Authentication flow error: {str(e)}", False)
-            self.results["auth_flow"]["status"] = "failed"
+            self.log_result("user_auth", f"User authentication error: {str(e)}", False)
+            self.results["user_auth"]["status"] = "failed"
             return False
     
-    def test_courses_api(self):
-        """Test courses API endpoints - Focus on 9 new small courses"""
-        print("\n=== Testing Courses API (9 New Small Courses) ===")
+    def test_create_external_course(self):
+        """Test creating an external course via admin API"""
+        print("\n=== Testing External Course Creation ===")
+        
+        if not self.admin_token:
+            self.log_result("external_course_creation", "No admin token available", False)
+            self.results["external_course_creation"]["status"] = "failed"
+            return False
+        
+        external_course_data = {
+            "title": "Professional Certification Program",
+            "description": "Full certification on TagMango platform",
+            "price_inr": 42000,
+            "category": "Professional",
+            "instructor": "Irfana Begum",
+            "duration": "12 weeks",
+            "course_type": "external",
+            "external_url": "https://learn.nnmua.com/l/d8ee974108",
+            "certificate_enabled": False,
+            "thumbnail": "https://images.unsplash.com/photo-1487412947147-5cebf100ffc2"
+        }
         
         try:
-            # Test GET /api/courses
-            print("1. Testing GET /api/courses...")
+            print("1. Creating external course via POST /api/admin/courses...")
+            headers = {"admin_token": self.admin_token, "Content-Type": "application/json"}
+            response = self.session.post(f"{BACKEND_URL}/admin/courses", 
+                                       json=external_course_data, 
+                                       headers=headers)
+            
+            if response.status_code != 200:
+                self.log_result("external_course_creation", f"Create external course failed: {response.status_code} - {response.text}", False)
+                self.results["external_course_creation"]["status"] = "failed"
+                return False
+            
+            data = response.json()
+            if not data.get("success"):
+                self.log_result("external_course_creation", f"Create course response invalid: {data}", False)
+                self.results["external_course_creation"]["status"] = "failed"
+                return False
+            
+            course = data.get("course", {})
+            self.external_course_id = course.get("id")
+            
+            # Verify all required fields
+            checks = [
+                ("title", course.get("title") == "Professional Certification Program"),
+                ("price_inr", course.get("price_inr") == 42000),
+                ("course_type", course.get("course_type") == "external"),
+                ("external_url", course.get("external_url") == "https://learn.nnmua.com/l/d8ee974108"),
+                ("certificate_enabled", course.get("certificate_enabled") == False),
+                ("course_id", self.external_course_id is not None)
+            ]
+            
+            all_passed = all(check[1] for check in checks)
+            failed_checks = [check[0] for check in checks if not check[1]]
+            
+            if all_passed:
+                self.log_result("external_course_creation", f"External course created successfully. ID: {self.external_course_id}")
+                self.results["external_course_creation"]["status"] = "passed"
+                return True
+            else:
+                self.log_result("external_course_creation", f"External course creation failed checks: {failed_checks}", False)
+                self.results["external_course_creation"]["status"] = "failed"
+                return False
+                
+        except Exception as e:
+            self.log_result("external_course_creation", f"External course creation error: {str(e)}", False)
+            self.results["external_course_creation"]["status"] = "failed"
+            return False
+    
+    def test_external_course_retrieval(self):
+        """Test retrieving external course via GET APIs"""
+        print("\n=== Testing External Course Retrieval ===")
+        
+        try:
+            # Test 1: GET /api/courses should include external course
+            print("1. Testing GET /api/courses includes external course...")
             response = self.session.get(f"{BACKEND_URL}/courses")
             
             if response.status_code != 200:
-                self.log_result("courses_api", f"GET courses failed: {response.status_code} - {response.text}", False)
-                self.results["courses_api"]["status"] = "failed"
+                self.log_result("external_course_retrieval", f"GET courses failed: {response.status_code}", False)
+                self.results["external_course_retrieval"]["status"] = "failed"
                 return False
             
             courses = response.json()
-            if not isinstance(courses, list):
-                self.log_result("courses_api", f"Courses response not a list: {type(courses)}", False)
-                self.results["courses_api"]["status"] = "failed"
-                return False
+            total_courses = len(courses)
             
-            # Should have more than the original 3 courses now
-            if len(courses) < 4:
-                self.log_result("courses_api", f"Expected more than 3 courses (original + 9 new), got {len(courses)}", False)
-                self.results["courses_api"]["status"] = "failed"
-                return False
-            
-            self.log_result("courses_api", f"GET courses successful: {len(courses)} courses returned (expected >3)")
-            
-            # Check for expected new courses
-            expected_new_courses = [
-                "Basic Eyebrow Shaping",
-                "Everyday Natural Makeup", 
-                "Festive Glam",
-                "Nail Care & Polish Basics",
-                "Beginner Nail Art", 
-                "Gel Nail Application",
-                "Everyday Hairstyling",
-                "Quick Bridal Hairstyles",
-                "Heatless Curls"
-            ]
-            
-            print("\n2. Checking for new small courses...")
-            found_new_courses = []
-            course_details = []
-            
-            for course in courses:
-                title = course.get('title', '')
-                category = course.get('category', '')
-                price_inr = course.get('price_inr')
-                
-                # Check if this matches any expected new course
-                for expected in expected_new_courses:
-                    if any(word.lower() in title.lower() for word in expected.split()):
-                        found_new_courses.append(title)
-                        course_details.append({
-                            'title': title,
-                            'category': category, 
-                            'price_inr': price_inr,
-                            'id': course.get('id')
-                        })
+            # Check for external course
+            external_course_found = False
+            if self.external_course_id:
+                for course in courses:
+                    if course.get("id") == self.external_course_id:
+                        external_course_found = True
+                        if (course.get("course_type") == "external" and 
+                            course.get("external_url") == "https://learn.nnmua.com/l/d8ee974108"):
+                            self.log_result("external_course_retrieval", f"External course found in courses list (Total: {total_courses})")
+                        else:
+                            self.log_result("external_course_retrieval", "External course found but missing required fields", False)
+                            self.results["external_course_retrieval"]["status"] = "failed"
+                            return False
                         break
-            
-            print(f"Found {len(found_new_courses)} new courses:")
-            for detail in course_details:
-                print(f"  - {detail['title']} ({detail['category']}) - ₹{detail['price_inr']}")
-            
-            if len(found_new_courses) < 5:
-                self.log_result("courses_api", f"Expected to find more new courses, only found {len(found_new_courses)}", False)
-                self.results["courses_api"]["status"] = "failed"
-                return False
-            
-            # Test GET /api/courses/{id} for one of the new small courses
-            if course_details:
-                test_course = course_details[0]  # Test first new course found
-                course_id = test_course['id']
                 
-                print(f"\n3. Testing GET /api/courses/{course_id} for '{test_course['title']}'...")
-                response = self.session.get(f"{BACKEND_URL}/courses/{course_id}")
+                if not external_course_found:
+                    self.log_result("external_course_retrieval", f"External course not found in courses list (Total: {total_courses})", False)
+                    self.results["external_course_retrieval"]["status"] = "failed"
+                    return False
+            
+            # Test 2: GET /api/courses/{external_course_id}
+            if self.external_course_id:
+                print(f"2. Testing GET /api/courses/{self.external_course_id}...")
+                response = self.session.get(f"{BACKEND_URL}/courses/{self.external_course_id}")
                 
                 if response.status_code != 200:
-                    self.log_result("courses_api", f"GET course by ID failed: {response.status_code} - {response.text}", False)
-                    self.results["courses_api"]["status"] = "failed"
+                    self.log_result("external_course_retrieval", f"GET external course by ID failed: {response.status_code}", False)
+                    self.results["external_course_retrieval"]["status"] = "failed"
                     return False
                 
                 course = response.json()
                 
-                # Verify required fields for new courses
-                required_fields = ['title', 'description', 'price', 'category', 'instructor', 'duration']
-                missing_fields = [field for field in required_fields if not course.get(field)]
+                # Verify external course specific fields
+                required_fields = ["course_type", "external_url", "certificate_enabled"]
+                missing_fields = [field for field in required_fields if field not in course]
                 
                 if missing_fields:
-                    self.log_result("courses_api", f"Course missing required fields: {missing_fields}", False)
-                    self.results["courses_api"]["status"] = "failed"
+                    self.log_result("external_course_retrieval", f"External course missing fields: {missing_fields}", False)
+                    self.results["external_course_retrieval"]["status"] = "failed"
                     return False
                 
-                # Check for price_inr field (critical for new courses)
-                if 'price_inr' not in course:
-                    self.log_result("courses_api", "New course missing price_inr field", False)
-                    self.results["courses_api"]["status"] = "failed"
-                    return False
-                
-                self.log_result("courses_api", f"Course details verified: {course.get('title')} - ₹{course.get('price_inr')}")
-                
-                # Check lessons structure
-                lessons = course.get('lessons', [])
-                if len(lessons) == 0:
-                    self.log_result("courses_api", "Warning: Course has no lessons", False)
+                if (course.get("course_type") == "external" and 
+                    course.get("external_url") and
+                    course.get("certificate_enabled") == False):
+                    self.log_result("external_course_retrieval", "External course details verified successfully")
                 else:
-                    self.log_result("courses_api", f"Course has {len(lessons)} lessons/sections")
-                    
-                    # Check if lessons contain structured data
-                    has_structured_content = False
-                    for lesson in lessons:
-                        if isinstance(lesson, dict) and len(lesson) > 1:
-                            has_structured_content = True
-                            break
-                    
-                    if has_structured_content:
-                        self.log_result("courses_api", "Course contains structured lesson content")
-                    else:
-                        self.log_result("courses_api", "Warning: Lessons may lack detailed structure", False)
-            
-            # Verify course categories
-            print("\n4. Verifying course categories...")
-            category_counts = {'makeup': 0, 'nail': 0, 'hair': 0}
-            
-            for detail in course_details:
-                category = detail['category'].lower()
-                if category in category_counts:
-                    category_counts[category] += 1
-            
-            print(f"Category distribution: Makeup: {category_counts['makeup']}, Nail: {category_counts['nail']}, Hair: {category_counts['hair']}")
-            
-            # Should have courses in multiple categories
-            active_categories = sum(1 for count in category_counts.values() if count > 0)
-            if active_categories < 2:
-                self.log_result("courses_api", f"Expected courses in multiple categories, found {active_categories}", False)
-                self.results["courses_api"]["status"] = "failed"
-                return False
-            
-            self.log_result("courses_api", f"New courses properly distributed across {active_categories} categories")
-            
-            self.results["courses_api"]["status"] = "passed"
-            return True
-            
-        except Exception as e:
-            self.log_result("courses_api", f"Courses API error: {str(e)}", False)
-            self.results["courses_api"]["status"] = "failed"
-            return False
-    
-    def test_live_classes(self):
-        """Test live classes API"""
-        print("\n=== Testing Live Classes API ===")
-        
-        try:
-            print("1. Testing GET /api/live-classes...")
-            response = self.session.get(f"{BACKEND_URL}/live-classes")
-            
-            if response.status_code != 200:
-                self.log_result("live_classes", f"GET live classes failed: {response.status_code} - {response.text}", False)
-                self.results["live_classes"]["status"] = "failed"
-                return False
-            
-            live_classes = response.json()
-            if not isinstance(live_classes, list):
-                self.log_result("live_classes", f"Live classes response not a list: {type(live_classes)}", False)
-                self.results["live_classes"]["status"] = "failed"
-                return False
-            
-            self.log_result("live_classes", f"GET live classes successful: {len(live_classes)} classes returned")
-            
-            # Verify each class has required fields
-            for i, lc in enumerate(live_classes):
-                required_fields = ["id", "title", "description", "date_time", "instructor"]
-                missing_fields = [field for field in required_fields if not lc.get(field)]
-                if missing_fields:
-                    self.log_result("live_classes", f"Class {i+1} missing fields: {missing_fields}", False)
-                    self.results["live_classes"]["status"] = "failed"
+                    self.log_result("external_course_retrieval", "External course has incorrect field values", False)
+                    self.results["external_course_retrieval"]["status"] = "failed"
                     return False
             
-            self.results["live_classes"]["status"] = "passed"
+            self.results["external_course_retrieval"]["status"] = "passed"
             return True
             
         except Exception as e:
-            self.log_result("live_classes", f"Live classes API error: {str(e)}", False)
-            self.results["live_classes"]["status"] = "failed"
+            self.log_result("external_course_retrieval", f"External course retrieval error: {str(e)}", False)
+            self.results["external_course_retrieval"]["status"] = "failed"
             return False
     
-    def test_my_courses(self):
-        """Test my courses API with authentication"""
-        print("\n=== Testing My Courses API (with auth) ===")
+    def test_certificate_apis(self):
+        """Test certificate API endpoints"""
+        print("\n=== Testing Certificate APIs ===")
         
         if not self.auth_token:
-            self.log_result("my_courses", "No auth token available for testing", False)
-            self.results["my_courses"]["status"] = "failed"
+            self.log_result("certificate_apis", "No user token available for certificate testing", False)
+            self.results["certificate_apis"]["status"] = "failed"
             return False
         
         try:
-            print("1. Testing GET /api/my-courses with auth token...")
+            # Test 1: GET /api/my-certificates with authentication
+            print("1. Testing GET /api/my-certificates with authentication...")
             headers = {"Authorization": f"Bearer {self.auth_token}"}
-            response = self.session.get(f"{BACKEND_URL}/my-courses", headers=headers)
+            response = self.session.get(f"{BACKEND_URL}/my-certificates", headers=headers)
             
             if response.status_code != 200:
-                self.log_result("my_courses", f"GET my courses failed: {response.status_code} - {response.text}", False)
-                self.results["my_courses"]["status"] = "failed"
+                self.log_result("certificate_apis", f"GET my-certificates failed: {response.status_code} - {response.text}", False)
+                self.results["certificate_apis"]["status"] = "failed"
                 return False
             
-            my_courses = response.json()
-            if not isinstance(my_courses, list):
-                self.log_result("my_courses", f"My courses response not a list: {type(my_courses)}", False)
-                self.results["my_courses"]["status"] = "failed"
+            certificates = response.json()
+            if not isinstance(certificates, list):
+                self.log_result("certificate_apis", f"My certificates response not a list: {type(certificates)}", False)
+                self.results["certificate_apis"]["status"] = "failed"
                 return False
             
-            self.log_result("my_courses", f"GET my courses successful: {len(my_courses)} enrolled courses")
+            self.log_result("certificate_apis", f"GET my-certificates successful: {len(certificates)} certificates (expected for new user)")
             
-            # Test without auth token (should fail)
-            print("2. Testing GET /api/my-courses without auth (should fail)...")
-            response = self.session.get(f"{BACKEND_URL}/my-courses")
+            # Test 2: GET /api/my-certificates without authentication
+            print("2. Testing GET /api/my-certificates without authentication...")
+            response = self.session.get(f"{BACKEND_URL}/my-certificates")
             
-            if response.status_code == 200:
-                self.log_result("my_courses", "My courses endpoint should require authentication", False)
-                self.results["my_courses"]["status"] = "failed"
+            if response.status_code == 401:
+                self.log_result("certificate_apis", "Correctly rejected unauthenticated request to my-certificates")
+            else:
+                self.log_result("certificate_apis", f"Expected 401 for unauthenticated request, got {response.status_code}", False)
+                self.results["certificate_apis"]["status"] = "failed"
                 return False
             
-            self.log_result("my_courses", f"Correctly rejected unauthenticated request: {response.status_code}")
+            # Test 3: GET /api/certificate/{certificate_id} with non-existent ID
+            print("3. Testing GET /api/certificate/{certificate_id} with non-existent ID...")
+            fake_cert_id = "NNAC-FAKE123"
+            response = self.session.get(f"{BACKEND_URL}/certificate/{fake_cert_id}")
             
-            self.results["my_courses"]["status"] = "passed"
+            if response.status_code == 404:
+                self.log_result("certificate_apis", "Correctly returned 404 for non-existent certificate")
+            else:
+                self.log_result("certificate_apis", f"Expected 404 for non-existent certificate, got {response.status_code}", False)
+                self.results["certificate_apis"]["status"] = "failed"
+                return False
+            
+            self.results["certificate_apis"]["status"] = "passed"
             return True
             
         except Exception as e:
-            self.log_result("my_courses", f"My courses API error: {str(e)}", False)
-            self.results["my_courses"]["status"] = "failed"
+            self.log_result("certificate_apis", f"Certificate APIs error: {str(e)}", False)
+            self.results["certificate_apis"]["status"] = "failed"
+            return False
+    
+    def test_regression_features(self):
+        """Test existing features regression"""
+        print("\n=== Testing Existing Features Regression ===")
+        
+        try:
+            # Test 1: Verify GET /api/courses returns all courses including new external course
+            print("1. Testing GET /api/courses returns all courses...")
+            response = self.session.get(f"{BACKEND_URL}/courses")
+            
+            if response.status_code != 200:
+                self.log_result("regression_tests", f"GET courses failed: {response.status_code}", False)
+                self.results["regression_tests"]["status"] = "failed"
+                return False
+            
+            courses = response.json()
+            total_courses = len(courses)
+            
+            # Should have at least 17 internal courses + 1 external course = 18
+            if total_courses < 18:
+                self.log_result("regression_tests", f"Expected at least 18 courses (17 internal + 1 external), got {total_courses}", False)
+                self.results["regression_tests"]["status"] = "failed"
+                return False
+            
+            self.log_result("regression_tests", f"GET courses returned {total_courses} courses (≥18 expected)")
+            
+            # Test 2: Verify course structure includes new fields
+            print("2. Testing course structure includes new fields...")
+            if not courses:
+                self.log_result("regression_tests", "No courses found for structure test", False)
+                self.results["regression_tests"]["status"] = "failed"
+                return False
+            
+            sample_course = courses[0]
+            required_fields = ["course_type", "external_url", "certificate_enabled", "price_inr"]
+            missing_fields = [field for field in required_fields if field not in sample_course]
+            
+            if missing_fields:
+                self.log_result("regression_tests", f"Course structure missing fields: {missing_fields}", False)
+                self.results["regression_tests"]["status"] = "failed"
+                return False
+            
+            self.log_result("regression_tests", f"Course structure includes all new fields: {required_fields}")
+            
+            # Test 3: Verify price display in INR
+            print("3. Testing price display in INR...")
+            courses_with_inr = [c for c in courses if "price_inr" in c and c["price_inr"] is not None]
+            
+            if len(courses_with_inr) == 0:
+                self.log_result("regression_tests", "No courses have price_inr field", False)
+                self.results["regression_tests"]["status"] = "failed"
+                return False
+            
+            self.log_result("regression_tests", f"Price display in INR working: {len(courses_with_inr)}/{len(courses)} courses have price_inr")
+            
+            self.results["regression_tests"]["status"] = "passed"
+            return True
+            
+        except Exception as e:
+            self.log_result("regression_tests", f"Regression tests error: {str(e)}", False)
+            self.results["regression_tests"]["status"] = "failed"
             return False
     
     def run_all_tests(self):
