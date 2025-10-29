@@ -128,6 +128,16 @@ class ProgressUpdate(BaseModel):
 class LiveClassBooking(BaseModel):
     class_id: str
 
+class Certificate(BaseModel):
+    id: Optional[str] = None
+    user_id: str
+    course_id: str
+    certificate_id: str  # Unique certificate ID
+    student_name: str
+    course_title: str
+    completion_date: datetime
+    issued_date: datetime = Field(default_factory=datetime.utcnow)
+
 class AdminLogin(BaseModel):
     username: str
     password: str
