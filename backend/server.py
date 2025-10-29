@@ -30,6 +30,10 @@ TWILIO_AUTH_TOKEN = os.environ['TWILIO_AUTH_TOKEN']
 TWILIO_PHONE_NUMBER = os.environ['TWILIO_PHONE_NUMBER']
 twilio_client = Client(TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN)
 
+# Admin credentials (in production, use proper authentication)
+ADMIN_USERNAME = os.environ.get('ADMIN_USERNAME', 'admin@nnacademy.com')
+ADMIN_PASSWORD = os.environ.get('ADMIN_PASSWORD', 'Admin@123')
+
 # Create the main app without a prefix
 app = FastAPI()
 
