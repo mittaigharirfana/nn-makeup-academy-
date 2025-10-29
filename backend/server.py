@@ -122,6 +122,9 @@ class CheckoutRequest(BaseModel):
     course_id: str
     origin_url: str
 
+class RazorpayOrderRequest(BaseModel):
+    course_id: str
+
 class ProgressUpdate(BaseModel):
     lesson_id: str
 
