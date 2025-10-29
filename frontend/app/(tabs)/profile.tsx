@@ -403,4 +403,60 @@ const styles = StyleSheet.create({
     color: '#999',
     marginBottom: 32,
   },
+  emptyCertificates: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 12,
+    padding: 40,
+    alignItems: 'center',
+  },
+  emptyText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#666',
+    marginTop: 12,
+  },
+  emptySubtext: {
+    fontSize: 14,
+    color: '#999',
+    textAlign: 'center',
+    marginTop: 4,
+  },
+  certificatesCard: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 12,
+    padding: 4,
+  },
+  certificateItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 16,
+    paddingHorizontal: 12,
+  },
+  certificateIcon: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: '#FFF9E6',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  certificateInfo: {
+    flex: 1,
+    marginLeft: 12,
+  },
+  certificateTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#333',
+  },
+  certificateId: {
+    fontSize: 12,
+    color: '#999',
+    marginTop: 2,
+  },
+  certificateDate: {
+    fontSize: 12,
+    color: '#666',
+    marginTop: 2,
+  },
 });
