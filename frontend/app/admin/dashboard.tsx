@@ -350,6 +350,53 @@ export default function AdminDashboard() {
               placeholderTextColor="#999"
             />
 
+            <Text style={styles.label}>Course Type</Text>
+            <View style={styles.categoryButtons}>
+              <TouchableOpacity
+                style={[styles.categoryButton, courseType === 'internal' && styles.categoryButtonActive]}
+                onPress={() => setCourseType('internal')}
+              >
+                <Text style={[styles.categoryButtonText, courseType === 'internal' && styles.categoryButtonTextActive]}>
+                  Internal (In-App)
+                </Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.categoryButton, courseType === 'external' && styles.categoryButtonActive]}
+                onPress={() => setCourseType('external')}
+              >
+                <Text style={[styles.categoryButtonText, courseType === 'external' && styles.categoryButtonTextActive]}>
+                  External (TagMango)
+                </Text>
+              </TouchableOpacity>
+            </View>
+
+            {courseType === 'external' && (
+              <>
+                <Text style={styles.label}>External URL (TagMango Link) *</Text>
+                <TextInput
+                  style={styles.input}
+                  placeholder="e.g., https://learn.nnmua.com/l/..."
+                  value={externalUrl}
+                  onChangeText={setExternalUrl}
+                  placeholderTextColor="#999"
+                />
+              </>
+            )}
+
+            <View style={styles.checkboxContainer}>
+              <TouchableOpacity
+                style={styles.checkbox}
+                onPress={() => setCertificateEnabled(!certificateEnabled)}
+              >
+                {certificateEnabled && (
+                  <Ionicons name="checkmark" size={18} color="#FF1493" />
+                )}
+              </TouchableOpacity>
+              <Text style={styles.checkboxLabel}>
+                Enable automatic certificate generation upon course completion
+              </Text>
+            </View>
+
             <TouchableOpacity style={styles.saveButton} onPress={handleSaveCourse}>
               <Text style={styles.saveButtonText}>
                 {editingCourse ? 'Update Course' : 'Create Course'}
