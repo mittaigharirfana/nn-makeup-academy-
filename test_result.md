@@ -123,11 +123,14 @@ backend:
     file: "backend/server.py"
     stuck_count: 0
     priority: "high"
-    needs_retesting: false
+    needs_retesting: true
     status_history:
         - working: true
           agent: "testing"
           comment: "✅ Courses API tested successfully. GET /api/courses returned 3 courses as expected. GET /api/courses/{id} for specific course (Makeup Mastery) returned correct course details. All endpoints returning 200 OK with proper data structures."
+        - working: true
+          agent: "main"
+          comment: "Added 9 new small courses from Excel file (N_and_N_Academy_Courses.xlsx). Categories: 3 Makeup courses (Basic Eyebrow Shaping ₹999, Everyday Natural Makeup ₹1499, Festive Glam ₹1999), 3 Nail courses (Nail Care ₹999, Beginner Nail Art ₹1499, Gel Nail ₹1999), 3 Hair courses (Everyday Hairstyling ₹999, Quick Bridal ₹1999, Heatless Curls ₹1499). All courses include detailed theory syllabus with modules and practical video lessons. Need to verify API returns all courses correctly."
 
   - task: "Live Classes API"
     implemented: true
