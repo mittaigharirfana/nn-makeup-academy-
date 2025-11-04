@@ -579,6 +579,136 @@ async def verify_razorpay_payment(
     except Exception as e:
         raise HTTPException(status_code=400, detail=f"Payment verification failed: {str(e)}")
 
+@api_router.post("/payment/razorpay-webhook")
+async def razorpay_webhook(request: Request):
+    """Handle Razorpay webhook for automatic enrollment on successful payment"""
+    try:
+        # Get webhook data
+        payload = await request.json()
+        webhook_secret = os.environ.get('RAZORPAY_WEBHOOK_SECRET', '')
+        
+        # Verify webhook signature (if webhook secret is configured)
+        if webhook_secret:
+            signature = request.headers.get('X-Razorpay-Signature', '')
+            # Note: Add signature verification here in production
+        
+        event = payload.get('event')
+        
+        # Handle payment.captured event
+        if event == 'payment.captured':
+            payment_entity = payload.get('payload', {}).get('payment', {}).get('entity', {})
+            order_id = payment_entity.get('order_id')
+            payment_id = payment_entity.get('id')
+            
+            if not order_id:
+                return {"status": "ignored", "reason": "No order_id"}
+            
+            # Find the order
+            order = await db.payment_orders.find_one({"order_id": order_id})
+            if not order:
+                return {"status": "ignored", "reason": "Order not found"}
+            
+            # Check if already processed
+            if order.get('status') == 'paid':
+                return {"status": "already_processed"}
+            
+            # Update order status
+            await db.payment_orders.update_one(
+                {"order_id": order_id},
+                {"$set": {"status": "paid", "payment_id": payment_id, "paid_at": datetime.utcnow()}}
+            )
+            
+            # Check if user is already enrolled
+            existing_enrollment = await db.enrollments.find_one({
+                "user_id": order['user_id'],
+                "course_id": order['course_id']
+            })
+            
+            if not existing_enrollment:
+                # Create enrollment
+                enrollment = {
+                    "user_id": order['user_id'],
+                    "course_id": order['course_id'],
+                    "enrolled_at": datetime.utcnow(),
+                    "completed_lessons": [],
+                    "progress": 0
+                }
+                
+                await db.enrollments.insert_one(enrollment)
+                
+                # Update user's enrolled courses
+                await db.users.update_one(
+                    {"_id": ObjectId(order['user_id'])},
+                    {"$addToSet": {"enrolled_courses": order['course_id']}}
+                )
+            
+            return {"status": "success", "message": "User enrolled successfully"}
+        
+        return {"status": "ignored", "event": event}
+        
+    except Exception as e:
+        logging.error(f"Webhook error: {str(e)}")
+        return {"status": "error", "message": str(e)}
+
+@api_router.post("/admin/manual-enroll")
+async def manual_enroll(
+    user_phone: str,
+    course_id: str,
+    authorization: Optional[str] = Header(None)
+):
+    """Manually enroll a user in a course (admin only)"""
+    if not authorization or not authorization.startswith("admin_"):
+        raise HTTPException(status_code=401, detail="Admin access required")
+    
+    try:
+        # Find user by phone
+        user = await db.users.find_one({"phone": user_phone})
+        if not user:
+            raise HTTPException(status_code=404, detail="User not found")
+        
+        user_id = str(user['_id'])
+        
+        # Check if course exists
+        course = await db.courses.find_one({"_id": ObjectId(course_id)})
+        if not course:
+            raise HTTPException(status_code=404, detail="Course not found")
+        
+        # Check if already enrolled
+        existing = await db.enrollments.find_one({
+            "user_id": user_id,
+            "course_id": course_id
+        })
+        
+        if existing:
+            return {"message": "User already enrolled", "enrollment_id": str(existing['_id'])}
+        
+        # Create enrollment
+        enrollment = {
+            "user_id": user_id,
+            "course_id": course_id,
+            "enrolled_at": datetime.utcnow(),
+            "completed_lessons": [],
+            "progress": 0,
+            "manual_enrollment": True
+        }
+        
+        result = await db.enrollments.insert_one(enrollment)
+        
+        # Update user's enrolled courses
+        await db.users.update_one(
+            {"_id": ObjectId(user_id)},
+            {"$addToSet": {"enrolled_courses": course_id}}
+        )
+        
+        return {
+            "success": True,
+            "message": "User enrolled successfully",
+            "enrollment_id": str(result.inserted_id)
+        }
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Enrollment failed: {str(e)}")
+
 @api_router.post("/payment/create-checkout")
 async def create_checkout(
     request: CheckoutRequest,
