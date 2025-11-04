@@ -1,0 +1,34 @@
+{
+  "expo": {
+    "name": "N&N Makeup Academy",
+    "slug": "nn-makeup-academy",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/images/icon.png",
+    "scheme": "nnmakeupacademy",
+    "userInterfaceStyle": "light",
+    "splash": {
+      "image": "./assets/images/splash-image.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#FF1493"
+    },
+    "assetBundlePatterns": [
+      "**/*"
+    ],
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.nnacademy.makeupapp"
+    },
+    "android": {
+      "package": "com.nnacademy.makeupapp",
+      "versionCode": 1,
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/images/adaptive-icon.png",
+        "backgroundColor": "#FF1493"
+      }
+    },
+    "plugins": [
+      "expo-router"
+    ]
+  }
+}
