@@ -1,29 +1,38 @@
 <analysis>
-The AI engineer successfully initiated and developed a full-stack Expo mobile application for a makeup academy. The process was iterative, addressing user feedback and debugging issues as they arose. Key milestones include setting up the project, implementing phone number OTP authentication, building a course browsing and detail view, and developing a comprehensive admin panel for course management. Significant effort was dedicated to resolving frontend rendering issues, particularly with  and route matching in Expo Router. The payment gateway transitioned from Stripe (test mode) to Razorpay (test mode) due to user preference for an Indian service, though full Razorpay integration is pending. Twilio for SMS OTP was also integrated, but user phone number verification on Twilio's end is needed for live SMS. The final interactions focused on populating the app with course content from the user's website, including detailed syllabus and video lessons, and then processing a new set of small courses.
+The AI engineer continued development on an Expo mobile application for a makeup academy, focusing on several key enhancements. Initially, 9 small courses were successfully added to the backend, complete with detailed syllabus and video content, after debugging authentication issues with the admin API endpoint. Following this, the app's UI was updated to display all course prices in Indian Rupees (₹) across the course list and detail pages. Key architectural decisions included using a custom  script for bulk data entry and dynamically adjusting frontend components for currency.
+
+Subsequently, the project expanded to integrate external courses like TagMango programs, involving updates to backend course models (, ) and frontend UI in the admin dashboard and course detail screen. A crucial feature for automatic certificate generation upon course completion was also partially implemented in the backend with corresponding models and API endpoints. The frontend was then updated to incorporate these features, including a dedicated certificate screen and profile integration.
+
+A critical bug with the Enroll Now button led to a full transition from the broken Stripe integration to Razorpay for Indian payments. This required modifying the backend API endpoint and adapting the frontend to use Razorpay's direct script-based checkout. After resolving a  error in the backend API request model, the Razorpay integration was confirmed working.
+
+The final major phase involved preparing the app for Google Play Store deployment. This included updating  for production and generating build instructions. Throughout this, the user provided live Razorpay API keys which were updated in the backend, and the engineer guided the user on local setup, Git cloning, dependency installation, and troubleshooting common An Expo user account is required to proceed.
+
+Log in to EAS with email or username (exit and run eas login --help to see other login options)
+Input is required, but stdin is not readable. Failed to display prompt: Email or username issues, such as the persistent Invalid UUID appId error in .
 </analysis>
 
 <product_requirements>
-The user requested an online makeup academy mobile app for women to learn easily from home, mirroring their website (https://nnmakeupandgrooming.com/).
-**Core Features:**
-1.  **Course Browsing & Joining:** Users can browse courses, check details, and join instantly.
-2.  **Online Videos:** App should open course videos.
-3.  **User Authentication:** Simple phone number and OTP login.
-4.  **Payment Integration:** Real payment with Stripe, later switched to Razorpay due to country-specific needs (for Indian payments).
-5.  **Live Class Scheduling/Booking:** Mentioned as a desired feature.
-6.  **Admin Panel:** User explicitly requested admin rights to add, edit, and manage courses and prices, including adding videos and syllabus (both practical and theory).
-7.  **Course Content:** The user desired detailed course syllabus (theory and practical) and associated video lessons.
-8.  **Small Courses:** Ability to add smaller courses starting from ₹1000.
+The primary goal is to provide an online makeup academy mobile app for women, mirroring the user's website, with easy home learning access. Core requirements included:
+1.  **Course Management:** Users can browse and join courses, view detailed theory and practical video lessons. The admin needs a panel to add, edit, delete, and manage courses, including detailed syllabus and videos, and specifically add small courses starting from ₹1000.
+2.  **User Authentication:** Simple phone number and OTP login.
+3.  **Payment:** Real payment integration, initially Stripe, then switched to Razorpay for India.
+4.  **Live Classes:** Scheduling and booking capabilities.
+5.  **External Course Integration:** Ability to list big courses that redirect to external platforms (e.g., TagMango) with a Contact Us or external enrollment link.
+6.  **Certificate Generation:** Automatic, branded certificate generation for students upon course completion, viewable in their profile.
+7.  **Localization:** Display course fees in Indian Rupees (₹).
+8.  **Deployment:** Guidance and preparation for Google Play Store submission.
 </product_requirements>
 
 <key_technical_concepts>
-- **Expo Router:** File-based navigation for React Native.
-- **FastAPI:** Python backend framework.
-- **MongoDB:** NoSQL database.
+- **Expo Router:** File-based navigation.
+- **FastAPI:** Python backend with authentication (admin/user tokens) and course/payment APIs.
+- **MongoDB:** NoSQL database for data persistence.
 - **React Native:** Cross-platform mobile UI framework.
-- **Zustand:** State management for frontend.
-- **Twilio:** SMS gateway for OTP delivery.
-- **Razorpay:** Indian payment gateway.
+- **Zustand:** Frontend state management.
+- **Twilio:** SMS gateway for OTP (though verification is pending).
+- **Razorpay:** Indian payment gateway (integrated in test and then live mode).
 - **Axios:** HTTP client for API calls.
+- **EAS CLI:** Expo Application Services for building and managing Expo apps.
 </key_technical_concepts>
 
 <code_architecture>
@@ -32,78 +41,70 @@ The application follows a full-stack architecture with an Expo (React Native) fr
 
 
 -   **/app/backend/server.py**: Main FastAPI application.
-    -   **Summary**: Contains all backend API endpoints for authentication (OTP send/verify), course management (CRUD for courses, fetching enrolled courses), live classes, payment (Stripe and Razorpay integration), and data seeding.
-    -   **Changes**: Initially empty, populated with authentication, course, and live class routes. Updated to include Stripe payment (create checkout session), Twilio SMS sending, and later partially updated for Razorpay keys. Admin routes for course CRUD were added. Policy endpoints were included.
--   **/app/backend/policies.py**: Contains HTML content for various policy pages.
-    -   **Summary**: Created to hold static policy content (Cancellation & Refund, Terms and Conditions, Shipping, Privacy, Contact Us) which are exposed via FastAPI routes.
-    -   **Changes**: New file creation with predefined HTML strings for policy documents.
--   **/app/frontend/app/index.tsx**: Main entry point of the Expo app.
-    -   **Summary**: Handles initial routing based on user authentication status. Redirects to  if not logged in, or to  if authenticated.
-    -   **Changes**: Initial setup. Modified to fix  import issues by adjusting the path.
--   **/app/frontend/app/_layout.tsx**: Root layout for Expo Router, handling global wrappers like .
-    -   **Summary**: Defines the main navigation stack and wraps the app with . It also defines screen options and handles routes.
-    -   **Changes**: Modified repeatedly to correct  import paths and include new routes like  and .
--   **/app/frontend/contexts/AuthContext.tsx**: Provides authentication context to the app.
-    -   **Summary**: Manages user token, loading state, sign-in, and sign-out logic. Wraps children components in .
-    -   **Changes**: Created. Later moved from  to  (and then back to  as per troubleshooter) to resolve module resolution issues. Imports were adjusted in , , , , .
--   **/app/frontend/app/auth/phone.tsx**: Phone number input screen for OTP authentication.
-    -   **Summary**: Allows users to enter their phone number and request an OTP.
-    -   **Changes**: Created. Improved with loading states and error handling. Modified to use  component instead of .
--   **/app/frontend/app/auth/verify.tsx**: OTP verification screen.
-    -   **Summary**: Users enter the received OTP to log in.
-    -   **Changes**: Created. Enhanced to display the OTP on the screen itself if passed as a route parameter, with added styling for visibility.
--   **/app/frontend/components/CustomAlert.tsx**: A custom modal-based alert component.
-    -   **Summary**: Created to replace  for better visual consistency across platforms, especially web.
-    -   **Changes**: New file creation for a reusable UI component.
--   **/app/frontend/app/(tabs)/_layout.tsx**: Layout for the main tab navigation.
-    -   **Summary**: Defines the bottom tab bar navigation for authenticated users, including 'Courses', 'My Learning', 'Live Classes', and 'Profile'.
-    -   **Changes**: Created. Configured tab icons and titles.
--   **/app/frontend/app/(tabs)/courses.tsx**: Displays a list of available courses.
-    -   **Summary**: Fetches and renders a categorized list of courses, allowing users to navigate to course details.
-    -   **Changes**: Created. Logic for fetching and displaying courses and navigating to .
--   **/app/frontend/app/(tabs)/my-learning.tsx**: Shows courses the user is enrolled in.
-    -   **Summary**: Placeholder for future implementation of enrolled courses.
-    -   **Changes**: New file creation.
--   **/app/frontend/app/(tabs)/live-classes.tsx**: Displays upcoming live classes.
-    -   **Summary**: Fetches and renders a list of live classes from the backend.
-    -   **Changes**: New file creation.
+    -   **Summary**: Handles API endpoints for auth, course CRUD, live classes, payments (Stripe, then Razorpay), and certificate generation.
+    -   **Changes**: Updated  and  models to include , , . Modified  to handle these fields. Added  model and API endpoints for certificate generation and retrieval. Removed Stripe checkout logic and added new Razorpay order creation endpoint () with  model to fix  errors.
+-   **/app/backend/.env**: Environment variables for backend.
+    -   **Summary**: Stores database URL, Twilio, admin credentials, and Razorpay API keys.
+    -   **Changes**: Updated multiple times with Razorpay test keys, then user-provided live keys, and then regenerated live keys.
+-   **/app/frontend/app/(tabs)/index.tsx**: Displays the main list of courses.
+    -   **Summary**: Fetches and renders courses for authenticated users.
+    -   **Changes**: Modified to display course prices in Indian Rupees (₹) instead of USD ($).
+-   **/app/frontend/app/course-detail.tsx**: Displays detailed course information and handles enrollment.
+    -   **Summary**: Shows course details, syllabus, video lessons, and handles the Enroll Now or Learn on TagMango action.
+    -   **Changes**: Modified to display prices in Indian Rupees (₹). Updated  interface with  and . Changed the Enroll button dynamically to Learn on TagMango for external courses, with specific styling. Integrated Razorpay payment directly into the frontend using a script-loading approach after the Stripe integration failed, requiring  for user data prefill.
+-   **/app/frontend/app/admin/dashboard.tsx**: Admin interface for course management.
+    -   **Summary**: Allows admins to add, edit, and delete courses.
+    -   **Changes**: Added state variables for , , . Updated  to pre-populate these fields. Modified the course creation/edit form to include UI elements for selecting course type (Internal/External), inputting an external URL, and enabling/disabling certificate generation, along with corresponding styles.
+-   **/app/frontend/app/certificate.tsx**: New screen for displaying certificates.
+    -   **Summary**: A dedicated screen to view user certificates.
+    -   **Changes**: New file created.
+-   **/app/frontend/app/_layout.tsx**: Root layout for Expo Router.
+    -   **Summary**: Defines main navigation stack and global providers.
+    -   **Changes**: Registered the new  route.
 -   **/app/frontend/app/(tabs)/profile.tsx**: User profile screen.
-    -   **Summary**: Displays user information and has a logout option.
-    -   **Changes**: New file creation. Updated to import  from the correct context path.
--   **/app/frontend/app/course-detail.tsx**: Displays detailed information about a selected course.
-    -   **Summary**: Fetches course details, including lessons and syllabus, and handles enrollment.
-    -   **Changes**: Created. Initially had rendering issues, improved with  and error handling. Updated to display detailed theory and practical syllabus.
--   **/app/frontend/app/video-player.tsx**: Screen for playing course videos.
-    -   **Summary**: Utilizes  to play video URLs.
-    -   **Changes**: New file creation, package added ().
--   **/app/frontend/app/payment-success.tsx**: Screen shown after a successful payment.
-    -   **Summary**: A confirmation screen for successful course enrollment.
-    -   **Changes**: New file creation.
--   **/app/frontend/app/admin/login.tsx**: Admin login screen.
-    -   **Summary**: Allows administrators to log in using specific credentials.
-    -   **Changes**: New file creation.
--   **/app/frontend/app/admin/dashboard.tsx**: Admin dashboard for course management.
-    -   **Summary**: Displays course statistics and provides UI for adding, editing, and deleting courses.
-    -   **Changes**: New file creation.
--   **/app/frontend/utils/api.ts**: Axios instance for API calls.
-    -   **Summary**: Configures Axios with base URL and error handling, including attaching authentication tokens.
-    -   **Changes**: Set up with  for backend communication.
-
-**Dependency Changes**:
-- **Backend ()**: , , , , , , ,  (later replaced/supplemented by , ).
-- **Frontend ()**: , , , , , , , , , , , , , .
+    -   **Summary**: Displays user information and provides options like logout.
+    -   **Changes**: Added a new section to display generated certificates.
+-   **/app/frontend/app.json**: Expo application configuration.
+    -   **Summary**: Defines app metadata, splash screen, icons, and environment variables.
+    -   **Changes**: Updated with production-ready settings (name, version, etc.) and later identified with an Invalid UUID appId in  requiring user intervention to remove or reset.
+-   **/app/frontend/eas.json**: EAS CLI configuration for builds.
+    -   **Summary**: Defines build profiles for different environments (e.g., production).
+    -   **Changes**: New file created for EAS build configuration.
+-   **/app/add_small_courses.py**: Temporary script.
+    -   **Summary**: Python script to programmatically add course data from an Excel file to the backend.
+    -   **Changes**: Created, then updated to correctly use the admin API endpoint  and include  authorization token.
+-   **/app/test_result.md**: Document for testing protocols and results.
+    -   **Summary**: Contains testing instructions and records of backend test outcomes.
+    -   **Changes**: Updated to reflect new courses and features for testing.
+-   **/app/BUILD_AT_HOME_COMPLETE_GUIDE.md, /app/HOME_DEPLOYMENT_COMPLETE_GUIDE.md, /app/QUICK_REFERENCE.md, /app/SETUP_ON_YOUR_COMPUTER.md, /app/BUILD_DEPLOYMENT_INSTRUCTIONS.md, /app/PLAYSTORE_DEPLOYMENT_GUIDE.md, /app/SCREENSHOTS_README.md**: Various guide documents.
+    -   **Summary**: Created to provide user with instructions on deployment, local setup, and building the app.
 </code_architecture>
 
 <pending_tasks>
-- **Razorpay Integration Completion:** The Razorpay keys are in the  file, and the SDK is installed, but the full backend payment creation endpoint and frontend integration (checkout flow) are not yet implemented.
-- **Twilio SMS Verification:** For real SMS delivery, the user needs to verify their phone number within their Twilio trial account.
-- **Live Class Booking:** Live class scheduling/booking was requested but not yet implemented.
+-   **Twilio SMS Verification:** For real SMS delivery, the user needs to verify their phone number within their Twilio trial account.
+-   **Live Class Booking:** Live class scheduling/booking was requested but not yet implemented.
+-   ** Project ID Fix:** The  file needs manual intervention to correct the  under  to resolve the Invalid UUID appId error during EAS builds.
 </pending_tasks>
 
 <current_work>
-Immediately before this summary request, the AI engineer was tasked with adding more small courses from an Excel sheet provided by the user. The AI engineer successfully processed previous user requests to add 5 new professional courses and updated the 3 original courses with detailed theory and practical syllabus content and video URLs. The current focus is on extracting course details from the uploaded Excel file  and then adding these new small courses to the application's backend, ensuring they also include comprehensive theory and practical syllabus structures, consistent with the user's explicit request. This involves reading the Excel file, parsing its content, and using the existing course creation API to populate the database with these new offerings.
+Immediately before this summary request, the AI engineer was guiding the user through the process of building the application for Google Play Store deployment from their local machine.
+
+The user encountered an Invalid UUID appId error when attempting to run Log in to EAS with email or username (exit and run eas login --help to see other login options)
+Input is required, but stdin is not readable. Failed to display prompt: Email or username, An Expo user account is required to proceed.
+
+Log in to EAS with email or username (exit and run eas login --help to see other login options)
+Input is required, but stdin is not readable. Failed to display prompt: Email or username, and An Expo user account is required to proceed.
+
+Log in to EAS with email or username (exit and run eas login --help to see other login options)
+Input is required, but stdin is not readable. Failed to display prompt: Email or username. This error indicates that the  file has an invalid or placeholder  within the  section, preventing EAS CLI from properly configuring or building the project.
+
+The AI engineer's last action was to instruct the user to manually open the  file on their local machine, locate the  section containing , and either completely remove this section or set  to an empty string. The intention is for EAS CLI to then automatically generate a valid project ID when the build command is re-attempted.
+The core issue is a configuration problem within the  file that is preventing the EAS build process from initializing correctly. The user needs to manually edit a local file based on the AI engineer's instructions.
 </current_work>
 
 <optional_next_step>
-Process the  file to add the new small courses to the application.
+Instruct the user to open  and remove or update the  field, then retry the An Expo user account is required to proceed.
+
+Log in to EAS with email or username (exit and run eas login --help to see other login options)
+Input is required, but stdin is not readable. Failed to display prompt: Email or username command.
 </optional_next_step>

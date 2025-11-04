@@ -117,7 +117,7 @@ npx expo start
 - Take screenshots
 
 **Option B: From Live URL**
-- Open: https://makeupacademy.preview.emergentagent.com
+- Open: https://beauty-course-app.preview.emergentagent.com
 - Take screenshots now
 - Save on your computer
 
