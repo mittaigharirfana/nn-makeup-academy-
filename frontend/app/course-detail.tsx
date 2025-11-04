@@ -93,72 +93,30 @@ export default function CourseDetailScreen() {
 
       console.log('Razorpay order response:', response.data);
 
-      // Load Razorpay script if not already loaded
-      if (typeof window !== 'undefined' && !(window as any).Razorpay) {
-        const script = document.createElement('script');
-        script.src = 'https://checkout.razorpay.com/v1/checkout.js';
-        script.async = true;
-        document.body.appendChild(script);
-        
-        await new Promise((resolve) => {
-          script.onload = resolve;
-        });
-      }
+      // Create payment URL with parameters
+      const paymentUrl = `https://api.razorpay.com/v1/checkout/embedded?key_id=${response.data.key_id}&order_id=${response.data.order_id}&amount=${response.data.amount}&currency=${response.data.currency}&name=N%26N%20Makeup%20Academy&description=${encodeURIComponent(course.title)}&prefill[name]=${encodeURIComponent(user?.name || '')}&prefill[contact]=${encodeURIComponent(user?.phone || '')}&theme[color]=%23FF1493`;
 
-      // Initialize Razorpay
-      if (typeof window !== 'undefined' && (window as any).Razorpay) {
-        const options = {
-          key: response.data.key_id,
-          amount: response.data.amount,
-          currency: response.data.currency,
-          name: 'N&N Makeup Academy',
-          description: course.title,
-          order_id: response.data.order_id,
-          handler: async function (paymentResponse: any) {
-            try {
-              // Verify payment
-              const verifyResponse = await api.post('/payment/verify-razorpay', null, {
-                params: {
-                  order_id: paymentResponse.razorpay_order_id,
-                  payment_id: paymentResponse.razorpay_payment_id,
-                  signature: paymentResponse.razorpay_signature
-                }
-              });
-              
-              if (verifyResponse.data.success) {
-                Alert.alert('Success', 'Payment successful! You are now enrolled.');
-                router.push('/payment-success');
-              }
-            } catch (error: any) {
-              Alert.alert('Error', 'Payment verification failed');
-              setEnrolling(false);
-            }
-          },
-          prefill: {
-            name: user?.name || '',
-            email: user?.email || '',
-            contact: user?.phone || ''
-          },
-          theme: {
-            color: '#FF1493'
-          },
-          modal: {
-            ondismiss: function() {
-              setEnrolling(false);
-            }
-          }
-        };
-
-        const rzp = new (window as any).Razorpay(options);
-        rzp.on('payment.failed', function (response: any) {
-          Alert.alert('Payment Failed', response.error.description);
-          setEnrolling(false);
-        });
-        
-        rzp.open();
-      } else {
-        Alert.alert('Error', 'Payment system not loaded. Please refresh the page.');
+      // Open Razorpay in browser
+      const result = await WebBrowser.openBrowserAsync(paymentUrl);
+      
+      // Note: Payment verification needs to be handled via webhook/callback
+      // For now, we'll check enrollment status after browser closes
+      if (result.type === 'dismiss' || result.type === 'cancel') {
         setEnrolling(false);
+        // Check if payment was successful
+        await checkEnrollment();
+        Alert.alert(
+          'Payment Status',
+          'Please check your enrollment status in "My Learning" tab.',
+          [
+            {
+              text: 'OK',
+              onPress: () => {
+                setEnrolling(false);
+              }
+            }
+          ]
+        );
       }
     } catch (error: any) {
       console.error('Enrollment error:', error);
