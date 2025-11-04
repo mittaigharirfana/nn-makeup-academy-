@@ -93,31 +93,45 @@ export default function CourseDetailScreen() {
 
       console.log('Razorpay order response:', response.data);
 
-      // Create payment URL with parameters
-      const paymentUrl = `https://api.razorpay.com/v1/checkout/embedded?key_id=${response.data.key_id}&order_id=${response.data.order_id}&amount=${response.data.amount}&currency=${response.data.currency}&name=N%26N%20Makeup%20Academy&description=${encodeURIComponent(course.title)}&prefill[name]=${encodeURIComponent(user?.name || '')}&prefill[contact]=${encodeURIComponent(user?.phone || '')}&theme[color]=%23FF1493`;
+      // Show instruction alert
+      Alert.alert(
+        'Payment Instructions',
+        'You will be redirected to Razorpay payment page in your browser. After completing the payment, please come back to the app and check "My Learning" tab.',
+        [
+          {
+            text: 'Cancel',
+            style: 'cancel',
+            onPress: () => setEnrolling(false)
+          },
+          {
+            text: 'Continue to Payment',
+            onPress: async () => {
+              try {
+                // Create payment URL with parameters
+                const paymentUrl = `https://api.razorpay.com/v1/checkout/embedded?key_id=${response.data.key_id}&order_id=${response.data.order_id}&amount=${response.data.amount}&currency=${response.data.currency}&name=N%26N%20Makeup%20Academy&description=${encodeURIComponent(course.title)}&prefill[name]=${encodeURIComponent(user?.name || '')}&prefill[contact]=${encodeURIComponent(user?.phone || '')}&theme[color]=%23FF1493`;
 
-      // Open Razorpay in browser
-      const result = await WebBrowser.openBrowserAsync(paymentUrl);
-      
-      // Note: Payment verification needs to be handled via webhook/callback
-      // For now, we'll check enrollment status after browser closes
-      if (result.type === 'dismiss' || result.type === 'cancel') {
-        setEnrolling(false);
-        // Check if payment was successful
-        await checkEnrollment();
-        Alert.alert(
-          'Payment Status',
-          'Please check your enrollment status in "My Learning" tab.',
-          [
-            {
-              text: 'OK',
-              onPress: () => {
+                // Open Razorpay in browser
+                await WebBrowser.openBrowserAsync(paymentUrl);
+                
+                // After browser closes, check enrollment
+                setTimeout(async () => {
+                  await checkEnrollment();
+                  setEnrolling(false);
+                  Alert.alert(
+                    'Check Payment Status',
+                    'Please go to "My Learning" tab to see if you are enrolled. If payment was successful, the course will appear there.',
+                    [{ text: 'OK' }]
+                  );
+                }, 1000);
+              } catch (browserError) {
+                console.error('Browser error:', browserError);
                 setEnrolling(false);
+                Alert.alert('Error', 'Failed to open payment page');
               }
             }
-          ]
-        );
-      }
+          }
+        ]
+      );
     } catch (error: any) {
       console.error('Enrollment error:', error);
       Alert.alert('Error', error.response?.data?.detail || 'Failed to initiate payment');
