@@ -46,6 +46,23 @@ export default function VideoPlayerScreen() {
   };
 
   const embedUrl = videoUrl ? getEmbedUrl(videoUrl) : '';
+  const [videoError, setVideoError] = useState(false);
+
+  const openInYouTube = async () => {
+    try {
+      if (videoUrl) {
+        // Try to open in YouTube app first, fallback to browser
+        const canOpen = await Linking.canOpenURL(videoUrl);
+        if (canOpen) {
+          await Linking.openURL(videoUrl);
+        } else {
+          await WebBrowser.openBrowserAsync(videoUrl);
+        }
+      }
+    } catch (error) {
+      Alert.alert('Error', 'Could not open video');
+    }
+  };
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
@@ -61,27 +78,65 @@ export default function VideoPlayerScreen() {
       </View>
 
       <View style={styles.playerContainer}>
-        {loading && (
+        {loading && !videoError && (
           <View style={styles.loadingContainer}>
             <ActivityIndicator size="large" color="#FF1493" />
           </View>
         )}
-        <WebView
-          source={{ uri: embedUrl }}
-          style={styles.video}
-          allowsFullscreenVideo
-          onLoadStart={() => setLoading(true)}
-          onLoadEnd={() => setLoading(false)}
-          onError={() => {
-            setLoading(false);
-            Alert.alert('Error', 'Failed to load video');
-          }}
-        />
+        
+        {videoError ? (
+          <View style={styles.errorContainer}>
+            <Ionicons name="play-circle-outline" size={80} color="#FF1493" />
+            <Text style={styles.errorTitle}>Video Not Available in App</Text>
+            <Text style={styles.errorDescription}>
+              This video can't be played in the app. Watch it on YouTube instead.
+            </Text>
+            <TouchableOpacity 
+              style={styles.youtubeButton}
+              onPress={openInYouTube}
+            >
+              <Ionicons name="logo-youtube" size={24} color="#FFF" />
+              <Text style={styles.youtubeButtonText}>Watch on YouTube</Text>
+            </TouchableOpacity>
+          </View>
+        ) : (
+          <WebView
+            source={{ uri: embedUrl }}
+            style={styles.video}
+            allowsFullscreenVideo
+            onLoadStart={() => setLoading(true)}
+            onLoadEnd={() => setLoading(false)}
+            onError={(syntheticEvent) => {
+              const { nativeEvent } = syntheticEvent;
+              console.log('WebView error: ', nativeEvent);
+              setLoading(false);
+              setVideoError(true);
+            }}
+            javaScriptEnabled={true}
+            domStorageEnabled={true}
+            mediaPlaybackRequiresUserAction={false}
+          />
+        )}
       </View>
 
       <View style={styles.info}>
         <Text style={styles.infoTitle}>Currently Watching</Text>
-        <Text style={styles.infoDescription}>Mark this lesson as complete to track your progress</Text>
+        <Text style={styles.infoDescription}>
+          {videoError 
+            ? 'Watch the video on YouTube to continue learning'
+            : 'Mark this lesson as complete to track your progress'
+          }
+        </Text>
+        
+        {!videoError && (
+          <TouchableOpacity 
+            style={styles.openYouTubeLink}
+            onPress={openInYouTube}
+          >
+            <Ionicons name="logo-youtube" size={20} color="#FF1493" />
+            <Text style={styles.openYouTubeLinkText}>Open in YouTube App</Text>
+          </TouchableOpacity>
+        )}
       </View>
     </SafeAreaView>
   );
