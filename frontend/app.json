@@ -69,7 +69,7 @@
       "typedRoutes": true
     },
     "extra": {
-      "backendUrl": "https://beauty-course-app.preview.emergentagent.com"
+      "backendUrl": "https://beauty-course-app.emergent.host"
     }
   }
 }
