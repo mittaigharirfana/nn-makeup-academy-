@@ -232,7 +232,9 @@ async def verify_otp(request: OTPVerifyRequest):
     """Verify OTP and create/login user"""
     stored_otp = OTP_STORAGE.get(request.phone)
     
-    if not stored_otp or stored_otp != request.otp:
+    # Convert both to strings for comparison
+    if not stored_otp or str(stored_otp).strip() != str(request.otp).strip():
+        logging.error(f"OTP verification failed. Phone: {request.phone}, Stored: {stored_otp}, Provided: {request.otp}")
         raise HTTPException(status_code=400, detail="Invalid OTP")
     
     # Remove used OTP
